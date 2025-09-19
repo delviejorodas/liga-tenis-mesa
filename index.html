@@ -392,11 +392,14 @@
             });
 
             // Lógica de autenticación
-            registerBtn.addEventListener('click', () => {
+            registerBtn.addEventListener('click', (event) => {
+                // Evita que el formulario se envíe automáticamente
+                event.preventDefault();
+
                 const password = registerPassword.value;
                 const email = registerEmail.value;
 
-                // Si el botón está deshabilitado por la validación en tiempo real, mostramos un mensaje
+                // Si el botón está deshabilitado, mostramos el mensaje de error y detenemos el registro
                 if (registerBtn.disabled) {
                     alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones.");
                     return;
