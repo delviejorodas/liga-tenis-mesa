@@ -294,6 +294,9 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // NUEVA LÍNEA: Forzar que los emails de Firebase se envíen en español
+        auth.languageCode = 'es';
+        
         // --- TU CÓDIGO JavaScript AQUÍ ---
         
         document.addEventListener('DOMContentLoaded', () => {
@@ -332,7 +335,8 @@
                         // Envía un email de verificación al usuario recién registrado
                         sendEmailVerification(user)
                             .then(() => {
-                                alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico para verificar tu cuenta!");
+                                // CAMBIO AQUÍ: Añadimos la advertencia sobre el spam
+                                alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico (incluida la bandeja de spam) para verificar tu cuenta!");
                             })
                             .catch((error) => {
                                 console.error("Error al enviar el email de verificación:", error);
