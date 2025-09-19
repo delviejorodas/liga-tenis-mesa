@@ -391,10 +391,10 @@
                 const password = registerPassword.value;
                 const email = registerEmail.value;
 
-                // NUEVO: La validación ya se hace en tiempo real, aquí solo verificamos que no esté deshabilitado el botón
+                // Si el botón está deshabilitado por la validación en tiempo real, mostramos un mensaje
                 if (registerBtn.disabled) {
-                    alert("La contraseña no cumple con todos los requisitos.");
-                    return;
+                    alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones.");
+                    return; // Detiene la función
                 }
 
                 createUserWithEmailAndPassword(auth, email, password)
