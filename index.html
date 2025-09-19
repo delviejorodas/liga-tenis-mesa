@@ -274,18 +274,19 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
         import { getFirestore, collection, addDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        // Importamos la función para enviar el email de verificación
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-	const firebaseConfig = {
-  		apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
-  		authDomain: "liga-tenis-mesa.firebaseapp.com",
-  		projectId: "liga-tenis-mesa",
-  		storageBucket: "liga-tenis-mesa.firebasestorage.app",
-  		messagingSenderId: "736920103478",
-  		appId: "1:736920103478:web:f14cf590148ec0ce13c697",
-  		measurementId: "G-1L1JTWHVQE"
-	};
+        // TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
+            authDomain: "liga-tenis-mesa.firebaseapp.com",
+            projectId: "liga-tenis-mesa",
+            storageBucket: "liga-tenis-mesa.firebasestorage.app",
+            messagingSenderId: "736920103478",
+            appId: "1:736920103478:web:f14cf590148ec0ce13c697",
+            measurementId: "G-1L1JTWHVQE"
+        };
 
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
@@ -327,7 +328,16 @@
             registerBtn.addEventListener('click', () => {
                 createUserWithEmailAndPassword(auth, registerEmail.value, registerPassword.value)
                     .then((userCredential) => {
-                        alert("Usuario registrado con éxito: " + userCredential.user.email);
+                        const user = userCredential.user;
+                        // Envía un email de verificación al usuario recién registrado
+                        sendEmailVerification(user)
+                            .then(() => {
+                                alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico para verificar tu cuenta!");
+                            })
+                            .catch((error) => {
+                                console.error("Error al enviar el email de verificación:", error);
+                                alert("Error al enviar el email de verificación. Por favor, inténtalo de nuevo.");
+                            });
                     })
                     .catch((error) => {
                         const errorMessage = error.message;
@@ -338,7 +348,15 @@
             loginBtn.addEventListener('click', () => {
                 signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
                     .then((userCredential) => {
-                        alert("Sesión iniciada con éxito: " + userCredential.user.email);
+                        // Después de iniciar sesión, comprobamos si el email está verificado
+                        const user = userCredential.user;
+                        if (user.emailVerified) {
+                            alert("Sesión iniciada con éxito.");
+                        } else {
+                            // Si el email no está verificado, cerramos la sesión
+                            signOut(auth);
+                            alert("Tu correo electrónico no ha sido verificado. Revisa tu bandeja de entrada.");
+                        }
                     })
                     .catch((error) => {
                         const errorMessage = error.message;
@@ -356,15 +374,15 @@
 
             // Detectar cambios en el estado de autenticación
             onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    // El usuario ha iniciado sesión
+                if (user && user.emailVerified) {
+                    // El usuario ha iniciado sesión y su email está verificado
                     authForms.style.display = 'none';
                     authStatus.style.display = 'block';
                     userEmailSpan.textContent = user.email;
                     toggleFormButton.style.display = 'block';
                     addPlayerForm.style.display = 'block';
                 } else {
-                    // El usuario ha cerrado sesión
+                    // El usuario ha cerrado sesión o su email no está verificado
                     authForms.style.display = 'flex';
                     authStatus.style.display = 'none';
                     toggleFormButton.style.display = 'none';
