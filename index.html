@@ -27,9 +27,49 @@
             text-align: center;
             color: #0056b3;
         }
+
+        .auth-forms {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+
+        .auth-forms h2 {
+            margin-top: 0;
+        }
+
+        .auth-forms input[type="email"], .auth-forms input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .auth-forms button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .auth-forms button:hover {
+            background-color: #0056b3;
+        }
+
+        .auth-status {
+            text-align: center;
+            margin-bottom: 20px;
+        }
         
         #toggleFormButton {
-            display: block;
+            display: none; /* Ocultar por defecto, se mostrará con JavaScript */
             width: 250px;
             margin: 20px auto;
             padding: 10px 20px;
@@ -168,6 +208,23 @@
     <div class="container">
         <h1>Ranking de Jugadores</h1>
 
+        <div class="auth-forms" id="auth-forms">
+            <h2>Registro</h2>
+            <input type="email" id="registerEmail" placeholder="Correo electrónico" required>
+            <input type="password" id="registerPassword" placeholder="Contraseña" required>
+            <button id="registerBtn">Registrar</button>
+
+            <h2>Inicio de sesión</h2>
+            <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
+            <input type="password" id="loginPassword" placeholder="Contraseña" required>
+            <button id="loginBtn">Iniciar Sesión</button>
+        </div>
+
+        <div class="auth-status" id="auth-status" style="display:none;">
+            <p>Has iniciado sesión como: <span id="userEmail"></span></p>
+            <button id="logoutBtn">Cerrar Sesión</button>
+        </div>
+
         <button id="toggleFormButton">Añadir Nuevo Jugador</button>
 
         <div class="form-container">
@@ -217,22 +274,24 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
         import { getFirestore, collection, addDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
-        // TU CONFIGURACIÓN DE FIREBASE
-        const firebaseConfig = {
-            apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
-            authDomain: "liga-tenis-mesa.firebaseapp.com",
-            projectId: "liga-tenis-mesa",
-            storageBucket: "liga-tenis-mesa.firebasestorage.app",
-            messagingSenderId: "736920103478",
-            appId: "1:736920103478:web:f14cf590148ec0ce13c697",
-            measurementId: "G-1L1JTWHVQE"
-        };
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+	const firebaseConfig = {
+  		apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
+  		authDomain: "liga-tenis-mesa.firebaseapp.com",
+  		projectId: "liga-tenis-mesa",
+  		storageBucket: "liga-tenis-mesa.firebasestorage.app",
+  		messagingSenderId: "736920103478",
+  		appId: "1:736920103478:web:f14cf590148ec0ce13c697",
+  		measurementId: "G-1L1JTWHVQE"
+	};
 
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app); // Ahora el seguimiento de Analytics está incluido
+        const analytics = getAnalytics(app);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         // --- TU CÓDIGO JavaScript AQUÍ ---
         
@@ -241,7 +300,19 @@
             const addPlayerForm = document.getElementById('addPlayerForm');
             const toggleFormButton = document.getElementById('toggleFormButton');
 
-            // Lógica para mostrar/ocultar el formulario
+            // Elementos de autenticación
+            const authForms = document.getElementById('auth-forms');
+            const authStatus = document.getElementById('auth-status');
+            const userEmailSpan = document.getElementById('userEmail');
+            const registerEmail = document.getElementById('registerEmail');
+            const registerPassword = document.getElementById('registerPassword');
+            const registerBtn = document.getElementById('registerBtn');
+            const loginEmail = document.getElementById('loginEmail');
+            const loginPassword = document.getElementById('loginPassword');
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            // Lógica para mostrar/ocultar el formulario de añadir jugador
             toggleFormButton.addEventListener('click', () => {
                 if (addPlayerForm.style.display === 'none' || addPlayerForm.style.display === '') {
                     addPlayerForm.style.display = 'block';
@@ -249,6 +320,55 @@
                 } else {
                     addPlayerForm.style.display = 'none';
                     toggleFormButton.textContent = 'Añadir Nuevo Jugador';
+                }
+            });
+
+            // Lógica de autenticación
+            registerBtn.addEventListener('click', () => {
+                createUserWithEmailAndPassword(auth, registerEmail.value, registerPassword.value)
+                    .then((userCredential) => {
+                        alert("Usuario registrado con éxito: " + userCredential.user.email);
+                    })
+                    .catch((error) => {
+                        const errorMessage = error.message;
+                        alert("Error al registrar: " + errorMessage);
+                    });
+            });
+
+            loginBtn.addEventListener('click', () => {
+                signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
+                    .then((userCredential) => {
+                        alert("Sesión iniciada con éxito: " + userCredential.user.email);
+                    })
+                    .catch((error) => {
+                        const errorMessage = error.message;
+                        alert("Error al iniciar sesión: " + errorMessage);
+                    });
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                signOut(auth).then(() => {
+                    alert("Sesión cerrada con éxito.");
+                }).catch((error) => {
+                    alert("Error al cerrar sesión: " + error.message);
+                });
+            });
+
+            // Detectar cambios en el estado de autenticación
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // El usuario ha iniciado sesión
+                    authForms.style.display = 'none';
+                    authStatus.style.display = 'block';
+                    userEmailSpan.textContent = user.email;
+                    toggleFormButton.style.display = 'block';
+                    addPlayerForm.style.display = 'block';
+                } else {
+                    // El usuario ha cerrado sesión
+                    authForms.style.display = 'flex';
+                    authStatus.style.display = 'none';
+                    toggleFormButton.style.display = 'none';
+                    addPlayerForm.style.display = 'none';
                 }
             });
 
