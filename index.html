@@ -329,18 +329,27 @@
 
             // Lógica de autenticación
             registerBtn.addEventListener('click', () => {
-                createUserWithEmailAndPassword(auth, registerEmail.value, registerPassword.value)
+                const password = registerPassword.value;
+                const email = registerEmail.value;
+
+                // NUEVA LÓGICA DE VALIDACIÓN DE CONTRASEÑA
+                const hasNumber = /[0-9]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+                const minLength = password.length >= 8;
+
+                if (!hasNumber || !hasLowerCase || !hasUpperCase || !hasSpecialChar || !minLength) {
+                    alert("La contraseña debe tener al menos 8 caracteres e incluir: una mayúscula, una minúscula, un número y un carácter especial.");
+                    return; // Detiene la función si la contraseña no es válida
+                }
+
+                createUserWithEmailAndPassword(auth, email, password)
                     .then((userCredential) => {
                         const user = userCredential.user;
-                        // Envía un email de verificación al usuario recién registrado
                         sendEmailVerification(user)
                             .then(() => {
-                                // CAMBIO AQUÍ: Añadimos la advertencia sobre el spam
                                 alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico (incluida la bandeja de spam) para verificar tu cuenta!");
-                            })
-                            .catch((error) => {
-                                console.error("Error al enviar el email de verificación:", error);
-                                alert("Error al enviar el email de verificación. Por favor, inténtalo de nuevo.");
                             });
                     })
                     .catch((error) => {
