@@ -48,6 +48,27 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        
+        /* Estilos para la validación de contraseña */
+        .password-validation {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        .password-validation li {
+            list-style: none;
+            padding: 2px 0;
+        }
+
+        .valid {
+            color: green;
+        }
+
+        .invalid {
+            color: red;
+        }
 
         .auth-forms button {
             padding: 10px 20px;
@@ -212,6 +233,15 @@
             <h2>Registro</h2>
             <input type="email" id="registerEmail" placeholder="Correo electrónico" required>
             <input type="password" id="registerPassword" placeholder="Contraseña" required>
+            <div id="passwordValidationList" class="password-validation">
+                <ul>
+                    <li id="min-length" class="invalid">Mínimo 8 caracteres</li>
+                    <li id="upper-case" class="invalid">Una mayúscula</li>
+                    <li id="lower-case" class="invalid">Una minúscula</li>
+                    <li id="number" class="invalid">Un número</li>
+                    <li id="special-char" class="invalid">Un carácter especial</li>
+                </ul>
+            </div>
             <button id="registerBtn">Registrar</button>
 
             <h2>Inicio de sesión</h2>
@@ -274,7 +304,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
         import { getFirestore, collection, addDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        // Importamos la función para enviar el email de verificación
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
@@ -294,7 +323,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // NUEVA LÍNEA: Forzar que los emails de Firebase se envíen en español
         auth.languageCode = 'es';
         
         // --- TU CÓDIGO JavaScript AQUÍ ---
@@ -315,6 +343,37 @@
             const loginPassword = document.getElementById('loginPassword');
             const loginBtn = document.getElementById('loginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
+            
+            // NUEVO CÓDIGO: Elementos de validación de contraseña
+            const minLengthEl = document.getElementById('min-length');
+            const upperCaseEl = document.getElementById('upper-case');
+            const lowerCaseEl = document.getElementById('lower-case');
+            const numberEl = document.getElementById('number');
+            const specialCharEl = document.getElementById('special-char');
+
+            // NUEVA LÓGICA: Comprobación en tiempo real de la contraseña
+            registerPassword.addEventListener('keyup', () => {
+                const password = registerPassword.value;
+                const hasNumber = /[0-9]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+                const minLength = password.length >= 8;
+
+                // Actualizar los estados de las condiciones visualmente
+                minLengthEl.className = minLength ? 'valid' : 'invalid';
+                upperCaseEl.className = hasUpperCase ? 'valid' : 'invalid';
+                lowerCaseEl.className = hasLowerCase ? 'valid' : 'invalid';
+                numberEl.className = hasNumber ? 'valid' : 'invalid';
+                specialCharEl.className = hasSpecialChar ? 'valid' : 'invalid';
+
+                // Habilitar o deshabilitar el botón de registro
+                if (minLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar) {
+                    registerBtn.disabled = false;
+                } else {
+                    registerBtn.disabled = true;
+                }
+            });
 
             // Lógica para mostrar/ocultar el formulario de añadir jugador
             toggleFormButton.addEventListener('click', () => {
@@ -332,16 +391,10 @@
                 const password = registerPassword.value;
                 const email = registerEmail.value;
 
-                // NUEVA LÓGICA DE VALIDACIÓN DE CONTRASEÑA
-                const hasNumber = /[0-9]/.test(password);
-                const hasLowerCase = /[a-z]/.test(password);
-                const hasUpperCase = /[A-Z]/.test(password);
-                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
-                const minLength = password.length >= 8;
-
-                if (!hasNumber || !hasLowerCase || !hasUpperCase || !hasSpecialChar || !minLength) {
-                    alert("La contraseña debe tener al menos 8 caracteres e incluir: una mayúscula, una minúscula, un número y un carácter especial.");
-                    return; // Detiene la función si la contraseña no es válida
+                // NUEVO: La validación ya se hace en tiempo real, aquí solo verificamos que no esté deshabilitado el botón
+                if (registerBtn.disabled) {
+                    alert("La contraseña no cumple con todos los requisitos.");
+                    return;
                 }
 
                 createUserWithEmailAndPassword(auth, email, password)
@@ -361,12 +414,10 @@
             loginBtn.addEventListener('click', () => {
                 signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
                     .then((userCredential) => {
-                        // Después de iniciar sesión, comprobamos si el email está verificado
                         const user = userCredential.user;
                         if (user.emailVerified) {
                             alert("Sesión iniciada con éxito.");
                         } else {
-                            // Si el email no está verificado, cerramos la sesión
                             signOut(auth);
                             alert("Tu correo electrónico no ha sido verificado. Revisa tu bandeja de entrada.");
                         }
@@ -385,17 +436,14 @@
                 });
             });
 
-            // Detectar cambios en el estado de autenticación
             onAuthStateChanged(auth, (user) => {
                 if (user && user.emailVerified) {
-                    // El usuario ha iniciado sesión y su email está verificado
                     authForms.style.display = 'none';
                     authStatus.style.display = 'block';
                     userEmailSpan.textContent = user.email;
                     toggleFormButton.style.display = 'block';
                     addPlayerForm.style.display = 'block';
                 } else {
-                    // El usuario ha cerrado sesión o su email no está verificado
                     authForms.style.display = 'flex';
                     authStatus.style.display = 'none';
                     toggleFormButton.style.display = 'none';
@@ -403,7 +451,6 @@
                 }
             });
 
-            // Manejar el envío del formulario para añadir un nuevo jugador
             addPlayerForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const name = document.getElementById('playerName').value;
@@ -427,7 +474,6 @@
                 }
             });
 
-            // Sincronización en tiempo real con la base de datos
             onSnapshot(query(collection(db, "jugadores"), orderBy("points", "desc")), (snapshot) => {
                 const players = [];
                 let position = 1;
