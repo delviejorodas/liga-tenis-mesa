@@ -57,6 +57,11 @@
             margin-bottom: 10px;
         }
 
+        .password-validation ul {
+            padding: 0;
+            margin: 0;
+        }
+
         .password-validation li {
             list-style: none;
             padding: 2px 0;
@@ -394,7 +399,7 @@
                 // Si el botón está deshabilitado por la validación en tiempo real, mostramos un mensaje
                 if (registerBtn.disabled) {
                     alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones.");
-                    return; // Detiene la función
+                    return;
                 }
 
                 createUserWithEmailAndPassword(auth, email, password)
