@@ -247,7 +247,7 @@
                     <li id="special-char" class="invalid">Un carácter especial</li>
                 </ul>
             </div>
-            <button id="registerBtn" disabled>Registrar</button>
+            <button id="registerBtn">Registrar</button>
 
             <h2>Inicio de sesión</h2>
             <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
@@ -391,6 +391,7 @@
                 const password = registerPassword.value;
                 const email = registerEmail.value;
 
+                // NUEVA VALIDACIÓN: Se comprueba todo en el momento del clic
                 const hasNumber = /[0-9]/.test(password);
                 const hasLowerCase = /[a-z]/.test(password);
                 const hasUpperCase = /[A-Z]/.test(password);
