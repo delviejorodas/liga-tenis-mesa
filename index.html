@@ -176,7 +176,7 @@
             }
         }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=TU_CLAVE_DEL_SITIO"></script>
 </head>
 <body>
 
@@ -231,8 +231,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-        import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -317,11 +317,24 @@
 
                 try {
                     // Genera el token de reCAPTCHA solo si la contraseña es válida
-                    const token = await grecaptcha.execute('6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ', {action: 'submit'});
+                    const token = await grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'});
                     
                     // Llama a la función de registro de Firebase
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     const user = userCredential.user;
+                    
+                    // Envía el email de verificación
+                    await sendEmailVerification(user);
+
+                    // Crea el documento inicial del jugador en Firestore
+                    await setDoc(doc(db, "jugadores", user.uid), {
+                        name: 'Nuevo Jugador',
+                        points: 0,
+                        played: 0,
+                        wins: 0,
+                        losses: 0,
+                        role: 'user'
+                    });
                     
                     alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico para verificar tu cuenta!");
                     
