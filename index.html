@@ -228,6 +228,8 @@
             }
         }
     </style>
+
+<script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
 </head>
 <body>
 
@@ -403,6 +405,44 @@
                     alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones y vuelve a intentarlo.");
                     return;
                 }
+
+		// Realiza la validación de la contraseña
+                const hasNumber = /[0-9]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+                const minLength = password.length >= 8;
+                
+                if (!hasNumber || !hasLowerCase || !hasUpperCase || !hasSpecialChar || !minLength) {
+                    alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones y vuelve a intentarlo.");
+                    return;
+                }
+
+                // Genera el token de reCAPTCHA
+                grecaptcha.ready(function() {
+                    grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'}).then(function(token) {
+                        
+                        // Una vez que tengas el token, lo envías al servidor para su verificación.
+                        // Como en este proyecto no tenemos un servidor,
+                        // solo mostraremos el token para que veas que funciona.
+                        alert('reCAPTCHA ha generado un token. Esto indica que no eres un bot.');
+                        
+                        // Llama a la función de registro de Firebase aquí dentro
+                        createUserWithEmailAndPassword(auth, email, password)
+                            .then((userCredential) => {
+                                const user = userCredential.user;
+                                sendEmailVerification(user)
+                                    .then(() => {
+                                        alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico (incluida la bandeja de spam) para verificar tu cuenta!");
+                                    });
+                            })
+                            .catch((error) => {
+                                const errorMessage = error.message;
+                                alert("Error al registrar: " + errorMessage);
+                            });
+
+                    });
+                });
 
                 createUserWithEmailAndPassword(auth, email, password)
                     .then((userCredential) => {
