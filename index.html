@@ -393,7 +393,7 @@
                 const password = registerPassword.value;
                 const email = registerEmail.value;
 
-                // VALIDACIÓN DE CONTRASEÑA: Se comprueba todo en el momento del clic
+                // VALIDACIÓN DE CONTRASEÑA
                 const hasNumber = /[0-9]/.test(password);
                 const hasLowerCase = /[a-z]/.test(password);
                 const hasUpperCase = /[A-Z]/.test(password);
@@ -402,15 +402,13 @@
                 
                 // Si la validación de la contraseña falla, muestra una alerta y detiene la función
                 if (!hasNumber || !hasLowerCase || !hasUpperCase || !hasSpecialChar || !minLength) {
-                    alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones y vuelve a intentarlo.");
+                    alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones.");
                     return;
                 }
 
                 // Genera el token de reCAPTCHA solo si la contraseña es válida
                 grecaptcha.ready(function() {
                     grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'}).then(function(token) {
-                        
-                        alert('reCAPTCHA ha generado un token. Esto indica que no eres un bot.');
                         
                         // Llama a la función de registro de Firebase aquí dentro
                         createUserWithEmailAndPassword(auth, email, password)
