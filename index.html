@@ -248,7 +248,7 @@
             <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
             <input type="password" id="loginPassword" placeholder="Contraseña" required>
             <button id="loginBtn">Iniciar Sesión</button>
-            <button id="resetPasswordBtn" style="background-color: #f44336;">¿Olvidaste tu contraseña?</button>
+            <a href="reset-password.html" id="resetPasswordLink" style="background-color: #f44336; padding: 10px 20px; color: white; border-radius: 5px; text-align: center; 			text-decoration: none; font-size: 16px;">¿Olvidaste tu contraseña?</a>
         </div>
 
         <div class="auth-status" id="auth-status" style="display:none;">
@@ -344,7 +344,6 @@
             const loginPassword = document.getElementById('loginPassword');
             const loginBtn = document.getElementById('loginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
-            const resetPasswordBtn = document.getElementById('resetPasswordBtn');
             
             // Elementos de validación de contraseña
             const minLengthEl = document.getElementById('min-length');
@@ -444,24 +443,6 @@
                 }).catch((error) => {
                     alert("Error al cerrar sesión: " + error.message);
                 });
-            });
-
-            // Lógica para el botón de recuperar contraseña
-            resetPasswordBtn.addEventListener('click', () => {
-                const email = loginEmail.value;
-                if (!email) {
-                    alert("Por favor, introduce tu correo electrónico para restablecer la contraseña.");
-                    return;
-                }
-                
-                sendPasswordResetEmail(auth, email)
-                    .then(() => {
-                        alert("¡Enlace de recuperación enviado! Por favor, revisa tu correo electrónico.");
-                    })
-                    .catch((error) => {
-                        const errorMessage = error.message;
-                        alert("Error al enviar el enlace: " + errorMessage);
-                    });
             });
 
             onAuthStateChanged(auth, (user) => {
