@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redireccionando...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Redireccionando...</h1>
+        <p>Por favor, espera mientras te redirigimos a la página correcta.</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        // TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
+            authDomain: "liga-tenis-mesa.firebaseapp.com",
+            projectId: "liga-tenis-mesa",
+            storageBucket: "liga-tenis-mesa.firebasestorage.app",
+            messagingSenderId: "736920103478",
+            appId: "1:736920103478:web:f14cf590148ec0ce13c697",
+            measurementId: "G-1L1JTWHVQE"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const oobCode = urlParams.get('oobCode');
+
+            if (!oobCode || !mode) {
+                alert("Error: El enlace no es válido.");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            switch (mode) {
+                case 'resetPassword':
+                    window.location.href = `new-password.html?oobCode=${oobCode}`;
+                    break;
+                case 'verifyEmail':
+                    // Aplica el código de verificación
+                    applyActionCode(auth, oobCode)
+                        .then(() => {
+                            alert("¡Correo electrónico verificado con éxito! Ahora puedes iniciar sesión.");
+                            window.location.href = 'index.html';
+                        })
+                        .catch((error) => {
+                            alert("Error al verificar el correo: " + error.message);
+                            window.location.href = 'index.html';
+                        });
+                    break;
+                // Puedes añadir más casos para otras acciones si es necesario
+                default:
+                    alert("Acción no reconocida.");
+                    window.location.href = 'index.html';
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

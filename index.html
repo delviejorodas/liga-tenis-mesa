@@ -210,7 +210,7 @@
             <button id="logoutBtn">Cerrar Sesión</button>
         </div>
 
-        <a href="add-player.html" id="addPlayerLink">Añadir Nuevo Jugador</a>
+        <a href="add-player.html" id="addPlayerLink" style="display: none; width: 250px; margin: 20px auto; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; text-align: center; text-decoration: none;">Añadir Nuevo Jugador</a>
 
         <table class="ranking-table" id="rankingTable">
             <thead>
@@ -232,7 +232,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
         import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -323,10 +323,7 @@
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     const user = userCredential.user;
                     
-                    // Envía el email de verificación
-                    await sendEmailVerification(user);
-                    
-                    alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico (incluida la bandeja de spam) para verificar tu cuenta!");
+                    alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico para verificar tu cuenta!");
                     
                 } catch (error) {
                     // Captura cualquier error que pueda ocurrir durante el proceso (reCAPTCHA, Firebase)
