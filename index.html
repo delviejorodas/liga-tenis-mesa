@@ -349,14 +349,14 @@
             const loginBtn = document.getElementById('loginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
             
-            // NUEVO CÓDIGO: Elementos de validación de contraseña
+            // Elementos de validación de contraseña
             const minLengthEl = document.getElementById('min-length');
             const upperCaseEl = document.getElementById('upper-case');
             const lowerCaseEl = document.getElementById('lower-case');
             const numberEl = document.getElementById('number');
             const specialCharEl = document.getElementById('special-char');
 
-            // NUEVA LÓGICA: Comprobación en tiempo real de la contraseña
+            // Comprobación en tiempo real de la contraseña (solo cambia colores)
             registerPassword.addEventListener('keyup', () => {
                 const password = registerPassword.value;
                 const hasNumber = /[0-9]/.test(password);
@@ -371,13 +371,6 @@
                 lowerCaseEl.className = hasLowerCase ? 'valid' : 'invalid';
                 numberEl.className = hasNumber ? 'valid' : 'invalid';
                 specialCharEl.className = hasSpecialChar ? 'valid' : 'invalid';
-
-                // Habilitar o deshabilitar el botón de registro
-                if (minLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar) {
-                    registerBtn.disabled = false;
-                } else {
-                    registerBtn.disabled = true;
-                }
             });
 
             // Lógica para mostrar/ocultar el formulario de añadir jugador
@@ -393,15 +386,20 @@
 
             // Lógica de autenticación
             registerBtn.addEventListener('click', (event) => {
-                // Evita que el formulario se envíe automáticamente
-                event.preventDefault();
+                event.preventDefault(); // Previene el envío del formulario
 
                 const password = registerPassword.value;
                 const email = registerEmail.value;
 
-                // Si el botón está deshabilitado, mostramos el mensaje de error y detenemos el registro
-                if (registerBtn.disabled) {
-                    alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones.");
+                const hasNumber = /[0-9]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+                const minLength = password.length >= 8;
+                
+                // Si la validación falla, muestra una alerta y detiene la función
+                if (!hasNumber || !hasLowerCase || !hasUpperCase || !hasSpecialChar || !minLength) {
+                    alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones y vuelve a intentarlo.");
                     return;
                 }
 
