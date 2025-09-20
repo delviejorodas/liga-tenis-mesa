@@ -176,7 +176,7 @@
             }
         }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?render=TU_CLAVE_DEL_SITIO"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
 </head>
 <body>
 
@@ -317,7 +317,7 @@
 
                 try {
                     // Genera el token de reCAPTCHA solo si la contraseña es válida
-                    const token = await grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'});
+                    const token = await grecaptcha.execute('6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ', {action: 'submit'});
                     
                     // Llama a la función de registro de Firebase
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
