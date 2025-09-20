@@ -206,12 +206,6 @@
                 border-radius: 8px;
             }
 
-            .ranking-table td {
-                text-align: right;
-                padding-left: 50%;
-                position: relative;
-            }
-
             .ranking-table td::before {
                 content: attr(data-label);
                 position: absolute;
@@ -228,8 +222,7 @@
             }
         }
     </style>
-
-<script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=TU_CLAVE_DEL_SITIO"></script>
 </head>
 <body>
 
@@ -255,6 +248,7 @@
             <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
             <input type="password" id="loginPassword" placeholder="Contraseña" required>
             <button id="loginBtn">Iniciar Sesión</button>
+            <button id="resetPasswordBtn" style="background-color: #f44336;">¿Olvidaste tu contraseña?</button>
         </div>
 
         <div class="auth-status" id="auth-status" style="display:none;">
@@ -311,7 +305,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
         import { getFirestore, collection, addDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -350,6 +344,7 @@
             const loginPassword = document.getElementById('loginPassword');
             const loginBtn = document.getElementById('loginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
+            const resetPasswordBtn = document.getElementById('resetPasswordBtn');
             
             // Elementos de validación de contraseña
             const minLengthEl = document.getElementById('min-length');
@@ -408,7 +403,7 @@
 
                 try {
                     // Genera el token de reCAPTCHA solo si la contraseña es válida
-                    const token = await grecaptcha.execute('6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ', {action: 'submit'});
+                    const token = await grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'});
                     
                     // Llama a la función de registro de Firebase
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -449,6 +444,24 @@
                 }).catch((error) => {
                     alert("Error al cerrar sesión: " + error.message);
                 });
+            });
+
+            // Lógica para el botón de recuperar contraseña
+            resetPasswordBtn.addEventListener('click', () => {
+                const email = loginEmail.value;
+                if (!email) {
+                    alert("Por favor, introduce tu correo electrónico para restablecer la contraseña.");
+                    return;
+                }
+                
+                sendPasswordResetEmail(auth, email)
+                    .then(() => {
+                        alert("¡Enlace de recuperación enviado! Por favor, revisa tu correo electrónico.");
+                    })
+                    .catch((error) => {
+                        const errorMessage = error.message;
+                        alert("Error al enviar el enlace: " + errorMessage);
+                    });
             });
 
             onAuthStateChanged(auth, (user) => {
