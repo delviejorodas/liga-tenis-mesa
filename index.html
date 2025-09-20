@@ -387,7 +387,7 @@
             });
 
             // Lógica de autenticación
-            registerBtn.addEventListener('click', (event) => {
+            registerBtn.addEventListener('click', async (event) => {
                 event.preventDefault(); // Previene el envío del formulario
 
                 const password = registerPassword.value;
@@ -406,26 +406,24 @@
                     return;
                 }
 
-                // Genera el token de reCAPTCHA solo si la contraseña es válida
-                grecaptcha.ready(function() {
-                    grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'}).then(function(token) {
-                        
-                        // Llama a la función de registro de Firebase aquí dentro
-                        createUserWithEmailAndPassword(auth, email, password)
-                            .then((userCredential) => {
-                                const user = userCredential.user;
-                                sendEmailVerification(user)
-                                    .then(() => {
-                                        alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico (incluida la bandeja de spam) para verificar tu cuenta!");
-                                    });
-                            })
-                            .catch((error) => {
-                                const errorMessage = error.message;
-                                alert("Error al registrar: " + errorMessage);
-                            });
-
-                    });
-                });
+                try {
+                    // Genera el token de reCAPTCHA solo si la contraseña es válida
+                    const token = await grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'});
+                    
+                    // Llama a la función de registro de Firebase
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    // Envía el email de verificación
+                    await sendEmailVerification(user);
+                    
+                    alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico (incluida la bandeja de spam) para verificar tu cuenta!");
+                    
+                } catch (error) {
+                    // Captura cualquier error que pueda ocurrir durante el proceso (reCAPTCHA, Firebase)
+                    const errorMessage = error.message;
+                    alert("Error al registrar: " + errorMessage);
+                }
             });
 
             loginBtn.addEventListener('click', () => {
