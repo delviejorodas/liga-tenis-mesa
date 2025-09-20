@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Jugador</title>
+    <style>
+        /* Puedes copiar los estilos de tu index.html para la consistencia */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #0056b3;
+        }
+
+        .profile-info {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+        }
+
+        .profile-info strong {
+            color: #555;
+        }
+
+        .edit-form-container {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .edit-form-container input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        .edit-button, .save-button {
+            display: block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .edit-button {
+            background-color: #28a745;
+        }
+
+        .save-button {
+            background-color: #007bff;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 id="playerName">Cargando perfil...</h1>
+        <div class="profile-info" id="playerProfileInfo">
+            <p><strong>Puntos:</strong> <span id="playerPoints"></span></p>
+            <p><strong>Partidos Jugados:</strong> <span id="playerPlayed"></span></p>
+            <p><strong>Victorias:</strong> <span id="playerWins"></span></p>
+            <p><strong>Derrotas:</strong> <span id="playerLosses"></span></p>
+        </div>
+        
+        <button id="editProfileBtn" class="edit-button" style="display: none;">Editar Perfil</button>
+
+        <div id="editForm" class="edit-form-container">
+            <h2>Editar Perfil</h2>
+            <p>Edita la información de tu perfil. Los campos de puntos, victorias y derrotas solo pueden ser modificados por un administrador.</p>
+            <label for="editPlayerName">Nombre:</label>
+            <input type="text" id="editPlayerName">
+            <label for="editPlayerPoints">Puntos:</label>
+            <input type="number" id="editPlayerPoints" disabled>
+            <label for="editPlayerPlayed">Partidos Jugados:</label>
+            <input type="number" id="editPlayerPlayed" disabled>
+            <label for="editPlayerWins">Victorias:</label>
+            <input type="number" id="editPlayerWins" disabled>
+            <label for="editPlayerLosses">Derrotas:</label>
+            <input type="number" id="editPlayerLosses" disabled>
+            <button id="saveChangesBtn" class="save-button">Guardar Cambios</button>
+        </div>
+
+        <a href="index.html" class="back-link">Volver al Ranking</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        // TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
+            authDomain: "liga-tenis-mesa.firebaseapp.com",
+            projectId: "liga-tenis-mesa",
+            storageBucket: "liga-tenis-mesa.firebasestorage.app",
+            messagingSenderId: "736920103478",
+            appId: "1:736920103478:web:f14cf590148ec0ce13c697",
+            measurementId: "G-1L1JTWHVQE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const playerId = urlParams.get('id');
+            
+            const playerNameEl = document.getElementById('playerName');
+            const playerProfileInfo = document.getElementById('playerProfileInfo');
+            const editProfileBtn = document.getElementById('editProfileBtn');
+            const editForm = document.getElementById('editForm');
+            const editPlayerName = document.getElementById('editPlayerName');
+            const saveChangesBtn = document.getElementById('saveChangesBtn');
+
+            const docRef = doc(db, "jugadores", playerId);
+
+            if (playerId) {
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const playerData = docSnap.data();
+                    playerNameEl.textContent = playerData.name;
+                    document.getElementById('playerPoints').textContent = playerData.points;
+                    document.getElementById('playerPlayed').textContent = playerData.played;
+                    document.getElementById('playerWins').textContent = playerData.wins;
+                    document.getElementById('playerLosses').textContent = playerData.losses;
+                    
+                    // Comprueba si el usuario está autenticado y es el dueño del perfil
+                    onAuthStateChanged(auth, (user) => {
+                        if (user && user.uid === playerId) {
+                            editProfileBtn.style.display = 'block';
+                        }
+                    });
+
+                } else {
+                    playerNameEl.textContent = "Jugador no encontrado";
+                    playerProfileInfo.innerHTML = "<p>El jugador con este ID no existe.</p>";
+                }
+            } else {
+                playerNameEl.textContent = "ID de jugador no proporcionado";
+                playerProfileInfo.innerHTML = "<p>Por favor, vuelve al ranking y selecciona un jugador.</p>";
+            }
+
+            // Lógica para el botón de edición
+            editProfileBtn.addEventListener('click', () => {
+                editForm.style.display = 'block';
+                playerProfileInfo.style.display = 'none';
+                editProfileBtn.style.display = 'none';
+                
+                // Carga la información actual en el formulario de edición
+                editPlayerName.value = document.getElementById('playerName').textContent;
+            });
+
+            // Lógica para guardar los cambios
+            saveChangesBtn.addEventListener('click', async () => {
+                const newName = editPlayerName.value;
+                
+                if (newName === "") {
+                    alert("El nombre no puede estar vacío.");
+                    return;
+                }
+
+                try {
+                    await updateDoc(docRef, {
+                        name: newName
+                    });
+                    alert("Perfil actualizado con éxito.");
+                    location.reload(); // Recarga la página para mostrar los cambios
+                } catch (e) {
+                    alert("Error al guardar los cambios: " + e.message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

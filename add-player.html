@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Añadir Jugador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+
+        .form-container h2 {
+            margin-top: 0;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-row label {
+            font-weight: bold;
+        }
+
+        .form-row input[type="text"], .form-row input[type="number"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-container button:hover {
+            background-color: #218838;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Añadir Nuevo Jugador</h1>
+        <div class="form-container">
+            <form id="addPlayerForm">
+                <div class="form-row">
+                    <label for="playerName">Nombre:</label>
+                    <input type="text" id="playerName" name="playerName" required>
+                </div>
+                <div class="form-row">
+                    <label for="playerPoints">Puntos:</label>
+                    <input type="number" id="playerPoints" name="playerPoints" required>
+                </div>
+                <div class="form-row">
+                    <label for="playerPlayed">Partidos Jugados:</label>
+                    <input type="number" id="playerPlayed" name="playerPlayed" required>
+                </div>
+                <div class="form-row">
+                    <label for="playerWins">Victorias:</label>
+                    <input type="number" id="playerWins" name="playerWins" required>
+                </div>
+                <div class="form-row">
+                    <label for="playerLosses">Derrotas:</label>
+                    <input type="number" id="playerLosses" name="playerLosses" required>
+                </div>
+                <button type="submit">Añadir Jugador</button>
+            </form>
+        </div>
+        <a href="index.html" class="back-link">Volver al Ranking</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        // TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
+            authDomain: "liga-tenis-mesa.firebaseapp.com",
+            projectId: "liga-tenis-mesa",
+            storageBucket: "liga-tenis-mesa.firebasestorage.app",
+            messagingSenderId: "736920103478",
+            appId: "1:736920103478:web:f14cf590148ec0ce13c697",
+            measurementId: "G-1L1JTWHVQE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const addPlayerForm = document.getElementById('addPlayerForm');
+            
+            // Redirige si el usuario no es un administrador
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    alert("Debes iniciar sesión para acceder a esta página.");
+                    window.location.href = 'index.html';
+                }
+                const userDoc = await getDoc(doc(db, "jugadores", user.uid));
+                if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+                    alert("No tienes permisos de administrador para ver esta página.");
+                    window.location.href = 'index.html';
+                }
+            });
+
+            addPlayerForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const user = auth.currentUser;
+                const name = document.getElementById('playerName').value;
+                const points = parseInt(document.getElementById('playerPoints').value);
+                const played = parseInt(document.getElementById('playerPlayed').value);
+                const wins = parseInt(document.getElementById('playerWins').value);
+                const losses = parseInt(document.getElementById('playerLosses').value);
+                
+                if (user) {
+                    try {
+                        await setDoc(doc(db, "jugadores", user.uid), {
+                            name: name,
+                            points: points,
+                            played: played,
+                            wins: wins,
+                            losses: losses,
+                            role: 'admin'
+                        });
+                        alert("Perfil de jugador creado con éxito.");
+                        addPlayerForm.reset();
+                    } catch (e) {
+                        console.error("Error al añadir documento: ", e);
+                        alert("Error al crear el perfil del jugador: " + e.message);
+                    }
+                } else {
+                    alert("Debes iniciar sesión para añadir un jugador.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

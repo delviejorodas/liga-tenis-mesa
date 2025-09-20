@@ -94,7 +94,7 @@
             margin-bottom: 20px;
         }
         
-        #toggleFormButton {
+        #addPlayerLink {
             display: none; /* Ocultar por defecto, se mostrará con JavaScript */
             width: 250px;
             margin: 20px auto;
@@ -106,59 +106,13 @@
             cursor: pointer;
             font-size: 16px;
             text-align: center;
+            text-decoration: none;
         }
         
-        #toggleFormButton:hover {
+        #addPlayerLink:hover {
             background-color: #218838;
         }
-
-        #addPlayerForm {
-            display: none;
-        }
         
-        .form-container {
-            margin-bottom: 20px;
-            padding: 20px;
-            background-color: #e9ecef;
-            border-radius: 8px;
-        }
-
-        .form-container h2 {
-            margin-top: 0;
-        }
-
-        .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .form-row label {
-            font-weight: bold;
-        }
-
-        .form-row input[type="text"], .form-row input[type="number"] {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        
-        .form-container button {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .form-container button:hover {
-            background-color: #218838;
-        }
-
         .ranking-table {
             width: 100%;
             border-collapse: collapse;
@@ -248,7 +202,7 @@
             <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
             <input type="password" id="loginPassword" placeholder="Contraseña" required>
             <button id="loginBtn">Iniciar Sesión</button>
-            <a href="reset-password.html" id="resetPasswordLink" style="background-color: #f44336; padding: 10px 20px; color: white; border-radius: 5px; text-align: center; 			text-decoration: none; font-size: 16px;">¿Olvidaste tu contraseña?</a>
+            <a href="reset-password.html" id="resetPasswordLink" style="background-color: #f44336; padding: 10px 20px; color: white; border-radius: 5px; text-align: center; text-decoration: none; font-size: 16px;">¿Olvidaste tu contraseña?</a>
         </div>
 
         <div class="auth-status" id="auth-status" style="display:none;">
@@ -256,34 +210,7 @@
             <button id="logoutBtn">Cerrar Sesión</button>
         </div>
 
-        <button id="toggleFormButton">Añadir Nuevo Jugador</button>
-
-        <div class="form-container">
-            <h2>Añadir Nuevo Jugador</h2>
-            <form id="addPlayerForm">
-                <div class="form-row">
-                    <label for="playerName">Nombre:</label>
-                    <input type="text" id="playerName" name="playerName" required>
-                </div>
-                <div class="form-row">
-                    <label for="playerPoints">Puntos:</label>
-                    <input type="number" id="playerPoints" name="playerPoints" required>
-                </div>
-                <div class="form-row">
-                    <label for="playerPlayed">Partidos Jugados:</label>
-                    <input type="number" id="playerPlayed" name="playerPlayed" required>
-                </div>
-                <div class="form-row">
-                    <label for="playerWins">Victorias:</label>
-                    <input type="number" id="playerWins" name="playerWins" required>
-                </div>
-                <div class="form-row">
-                    <label for="playerLosses">Derrotas:</label>
-                    <input type="number" id="playerLosses" name="playerLosses" required>
-                </div>
-                <button type="submit">Añadir Jugador</button>
-            </form>
-        </div>
+        <a href="add-player.html" id="addPlayerLink">Añadir Nuevo Jugador</a>
 
         <table class="ranking-table" id="rankingTable">
             <thead>
@@ -304,8 +231,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-        import { getFirestore, collection, addDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -330,8 +257,7 @@
         
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.querySelector('#rankingTable tbody');
-            const addPlayerForm = document.getElementById('addPlayerForm');
-            const toggleFormButton = document.getElementById('toggleFormButton');
+            const addPlayerLink = document.getElementById('addPlayerLink');
 
             // Elementos de autenticación
             const authForms = document.getElementById('auth-forms');
@@ -367,17 +293,6 @@
                 lowerCaseEl.className = hasLowerCase ? 'valid' : 'invalid';
                 numberEl.className = hasNumber ? 'valid' : 'invalid';
                 specialCharEl.className = hasSpecialChar ? 'valid' : 'invalid';
-            });
-
-            // Lógica para mostrar/ocultar el formulario de añadir jugador
-            toggleFormButton.addEventListener('click', () => {
-                if (addPlayerForm.style.display === 'none' || addPlayerForm.style.display === '') {
-                    addPlayerForm.style.display = 'block';
-                    toggleFormButton.textContent = 'Ocultar Formulario';
-                } else {
-                    addPlayerForm.style.display = 'none';
-                    toggleFormButton.textContent = 'Añadir Nuevo Jugador';
-                }
             });
 
             // Lógica de autenticación
@@ -445,58 +360,38 @@
                 });
             });
 
-            onAuthStateChanged(auth, (user) => {
+            onAuthStateChanged(auth, async (user) => {
                 if (user && user.emailVerified) {
                     authForms.style.display = 'none';
                     authStatus.style.display = 'block';
                     userEmailSpan.textContent = user.email;
-                    toggleFormButton.style.display = 'block';
-                    addPlayerForm.style.display = 'block';
+
+                    // Comprobar el rol del usuario
+                    const userDoc = await getDoc(doc(db, "jugadores", user.uid));
+                    if (userDoc.exists() && userDoc.data().role === 'admin') {
+                        addPlayerLink.style.display = 'block';
+                    } else {
+                        addPlayerLink.style.display = 'none';
+                    }
                 } else {
                     authForms.style.display = 'flex';
                     authStatus.style.display = 'none';
-                    toggleFormButton.style.display = 'none';
-                    addPlayerForm.style.display = 'none';
-                }
-            });
-
-            addPlayerForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                const name = document.getElementById('playerName').value;
-                const points = parseInt(document.getElementById('playerPoints').value);
-                const played = parseInt(document.getElementById('playerPlayed').value);
-                const wins = parseInt(document.getElementById('playerWins').value);
-                const losses = parseInt(document.getElementById('playerLosses').value);
-                
-                try {
-                    const docRef = await addDoc(collection(db, "jugadores"), {
-                        name: name,
-                        points: points,
-                        played: played,
-                        wins: wins,
-                        losses: losses
-                    });
-                    console.log("Documento escrito con ID: ", docRef.id);
-                    addPlayerForm.reset();
-                } catch (e) {
-                    console.error("Error al añadir documento: ", e);
+                    addPlayerLink.style.display = 'none';
                 }
             });
 
             onSnapshot(query(collection(db, "jugadores"), orderBy("points", "desc")), (snapshot) => {
                 const players = [];
                 let position = 1;
+                tableBody.innerHTML = '';
                 snapshot.forEach((doc) => {
                     const player = doc.data();
-                    players.push({ ...player, position: position++ });
-                });
-                
-                tableBody.innerHTML = '';
-                players.forEach(player => {
+                    const docId = doc.id;
+                    
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td data-label="Posición">${player.position}</td>
-                        <td data-label="Jugador">${player.name}</td>
+                        <td data-label="Posición">${position++}</td>
+                        <td data-label="Jugador"><a href="player-profile.html?id=${docId}">${player.name}</a></td>
                         <td data-label="Puntos">${player.points}</td>
                         <td data-label="Partidos Jugados">${player.played}</td>
                         <td data-label="Victorias">${player.wins}</td>
