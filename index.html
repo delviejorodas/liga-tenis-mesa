@@ -169,7 +169,7 @@
             }
         }
     </style>
-    </head>
+</head>
 <body>
 
     <div class="container">
@@ -212,8 +212,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-        // Importamos setDoc, pero solo lo usamos en el registro (que está en register.html), así que podemos quitarlo de aquí si queremos ser estrictos. 
-        // No obstante, lo dejo ya que el módulo de Firestore es necesario.
         import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; 
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
@@ -236,12 +234,10 @@
 
         auth.languageCode = 'es';
         
-        // --- TU CÓDIGO JavaScript AQUÍ ---
-        
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.querySelector('#rankingTable tbody');
             const addPlayerLink = document.getElementById('addPlayerLink');
-            const goToRegister = document.getElementById('goToRegister'); // Nuevo elemento
+            const goToRegister = document.getElementById('goToRegister'); 
             const authForms = document.getElementById('auth-forms');
             const authStatus = document.getElementById('auth-status');
             const userEmailSpan = document.getElementById('userEmail');
@@ -250,17 +246,16 @@
             const loginBtn = document.getElementById('loginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
 
-            // ❌ EL CÓDIGO DE REGISTRO SE HA ELIMINADO DE ESTE ARCHIVO ❌
-
             loginBtn.addEventListener('click', () => {
                 signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
                     .then((userCredential) => {
                         const user = userCredential.user;
-                        if (user.emailVerified) {
-                            alert("Sesión iniciada con éxito.");
-                        } else {
+                        if (!user.emailVerified) {
                             signOut(auth);
                             alert("Tu correo electrónico no ha sido verificado. Revisa tu bandeja de entrada.");
+                        } else {
+                            // La verificación del perfil se hará en onAuthStateChanged
+                            alert("Sesión iniciada con éxito. Comprobando perfil...");
                         }
                     })
                     .catch((error) => {
@@ -279,23 +274,34 @@
 
             onAuthStateChanged(auth, async (user) => {
                 if (user && user.emailVerified) {
-                    authForms.style.display = 'none';
-                    authStatus.style.display = 'block';
-                    goToRegister.style.display = 'none'; // Oculta el botón de registro si el usuario está logueado
-                    userEmailSpan.textContent = user.email;
-
-                    // Comprobar el rol del usuario
+                    
+                    // Comprobar si el usuario tiene un perfil de jugador en Firestore
                     const userDoc = await getDoc(doc(db, "jugadores", user.uid));
-                    if (userDoc.exists() && userDoc.data().role === 'admin') {
-                        addPlayerLink.style.display = 'block';
+                    
+                    if (!userDoc.exists()) {
+                        // Si el usuario está autenticado y verificado, pero NO tiene perfil de jugador:
+                        signOut(auth);
+                        alert("Tu cuenta de usuario no está asociada a ningún jugador en el ranking. Contacta con un administrador.");
+                        // Sigue la ejecución en el bloque 'else' (no logueado)
                     } else {
-                        addPlayerLink.style.display = 'none';
+                        // El usuario está logueado, verificado Y tiene perfil de jugador.
+                        authForms.style.display = 'none';
+                        authStatus.style.display = 'block';
+                        goToRegister.style.display = 'none';
+                        userEmailSpan.textContent = user.email;
+
+                        // Comprobar el rol del usuario (Admin o User)
+                        if (userDoc.data().role === 'admin') {
+                            addPlayerLink.style.display = 'block';
+                        } else {
+                            addPlayerLink.style.display = 'none';
+                        }
                     }
                 } else {
-                    // Muestra los formularios de acceso si no hay usuario logueado
+                    // Muestra los formularios de acceso si no hay usuario logueado o verificado
                     authForms.style.display = 'flex';
                     authStatus.style.display = 'none';
-                    goToRegister.style.display = 'block'; // Muestra el botón de registro
+                    goToRegister.style.display = 'block'; 
                     addPlayerLink.style.display = 'none';
                 }
             });
