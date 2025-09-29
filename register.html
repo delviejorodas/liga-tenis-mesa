@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Nuevo Jugador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #0056b3;
+        }
+
+        .register-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+
+        .register-form input[type="email"], .register-form input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        /* Estilos para la validación de contraseña */
+        .password-validation {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        .password-validation ul {
+            padding: 0;
+            margin: 0;
+        }
+
+        .password-validation li {
+            list-style: none;
+            padding: 2px 0;
+        }
+
+        .valid {
+            color: green;
+        }
+
+        .invalid {
+            color: red;
+        }
+
+        .register-form button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .register-form button:hover {
+            background-color: #218838;
+        }
+        
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script src="https://www.google.com/recaptcha/api.js?render=TU_CLAVE_DEL_SITIO"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Registro de Jugadores</h1>
+
+        <div class="register-form">
+            <input type="email" id="registerEmail" placeholder="Correo electrónico" required>
+            <input type="password" id="registerPassword" placeholder="Contraseña" required>
+            
+            <div id="passwordValidationList" class="password-validation">
+                <ul>
+                    <li id="min-length" class="invalid">Mínimo 8 caracteres</li>
+                    <li id="upper-case" class="invalid">Una mayúscula</li>
+                    <li id="lower-case" class="invalid">Una minúscula</li>
+                    <li id="number" class="invalid">Un número</li>
+                    <li id="special-char" class="invalid">Un carácter especial</li>
+                </ul>
+            </div>
+            
+            <button id="registerBtn">Registrar Cuenta</button>
+        </div>
+
+        <a href="index.html" class="back-link">Volver al Inicio de Sesión</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        // TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
+            authDomain: "liga-tenis-mesa.firebaseapp.com",
+            projectId: "liga-tenis-mesa",
+            storageBucket: "liga-tenis-mesa.firebasestorage.app",
+            messagingSenderId: "736920103478",
+            appId: "1:736920103478:web:f14cf590148ec0ce13c697",
+            measurementId: "G-1L1JTWHVQE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        auth.languageCode = 'es';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const registerEmail = document.getElementById('registerEmail');
+            const registerPassword = document.getElementById('registerPassword');
+            const registerBtn = document.getElementById('registerBtn');
+            
+            // Elementos de validación de contraseña
+            const minLengthEl = document.getElementById('min-length');
+            const upperCaseEl = document.getElementById('upper-case');
+            const lowerCaseEl = document.getElementById('lower-case');
+            const numberEl = document.getElementById('number');
+            const specialCharEl = document.getElementById('special-char');
+
+            // Lógica de validación de contraseña en tiempo real
+            registerPassword.addEventListener('keyup', () => {
+                const password = registerPassword.value;
+                const hasNumber = /[0-9]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+                const minLength = password.length >= 8;
+
+                minLengthEl.className = minLength ? 'valid' : 'invalid';
+                upperCaseEl.className = hasUpperCase ? 'valid' : 'invalid';
+                lowerCaseEl.className = hasLowerCase ? 'valid' : 'invalid';
+                numberEl.className = hasNumber ? 'valid' : 'invalid';
+                specialCharEl.className = hasSpecialChar ? 'valid' : 'invalid';
+            });
+
+            // Lógica de Registro
+            registerBtn.addEventListener('click', async (event) => {
+                event.preventDefault(); 
+
+                const password = registerPassword.value;
+                const email = registerEmail.value;
+
+                // Validación de contraseña (completa)
+                const hasNumber = /[0-9]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+                const minLength = password.length >= 8;
+                
+                if (!hasNumber || !hasLowerCase || !hasUpperCase || !hasSpecialChar || !minLength) {
+                    alert("La contraseña no cumple con todos los requisitos.");
+                    return;
+                }
+
+                try {
+                    // Genera el token de reCAPTCHA
+                    const token = await grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'});
+                    
+                    // 1. Crea la cuenta de usuario en Firebase Auth
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    // 2. Envía el email de verificación (que redirigirá a auth-redirect.html)
+                    await sendEmailVerification(user);
+
+                    // 3. Crea el documento inicial del jugador en Firestore
+                    await setDoc(doc(db, "jugadores", user.uid), {
+                        name: 'Nuevo Jugador',
+                        points: 0,
+                        played: 0,
+                        wins: 0,
+                        losses: 0,
+                        role: 'user'
+                    });
+                    
+                    alert("¡Registro exitoso! Revisa tu correo electrónico para verificar tu cuenta y luego inicia sesión.");
+                    window.location.href = 'index.html'; // Redirige al inicio de sesión
+                    
+                } catch (error) {
+                    const errorMessage = error.message;
+                    alert("Error al registrar: " + errorMessage);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -48,32 +48,6 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        
-        /* Estilos para la validación de contraseña */
-        .password-validation {
-            font-size: 0.9em;
-            color: #555;
-            margin-top: -10px;
-            margin-bottom: 10px;
-        }
-
-        .password-validation ul {
-            padding: 0;
-            margin: 0;
-        }
-
-        .password-validation li {
-            list-style: none;
-            padding: 2px 0;
-        }
-
-        .valid {
-            color: green;
-        }
-
-        .invalid {
-            color: red;
-        }
 
         .auth-forms button {
             padding: 10px 20px;
@@ -113,6 +87,25 @@
             background-color: #218838;
         }
         
+        #goToRegister {
+            display: block; 
+            width: 80%; 
+            max-width: 400px; 
+            margin: 20px auto; 
+            padding: 15px 20px; 
+            background-color: #f44336; 
+            color: white; 
+            border-radius: 5px; 
+            text-align: center; 
+            text-decoration: none; 
+            font-size: 18px; 
+            font-weight: bold;
+        }
+
+        #goToRegister:hover {
+            background-color: #cc372c;
+        }
+
         .ranking-table {
             width: 100%;
             border-collapse: collapse;
@@ -176,34 +169,22 @@
             }
         }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
-</head>
+    </head>
 <body>
 
     <div class="container">
         <h1>Ranking de Jugadores</h1>
 
         <div class="auth-forms" id="auth-forms">
-            <h2>Registro</h2>
-            <input type="email" id="registerEmail" placeholder="Correo electrónico" required>
-            <input type="password" id="registerPassword" placeholder="Contraseña" required>
-            <div id="passwordValidationList" class="password-validation">
-                <ul>
-                    <li id="min-length" class="invalid">Mínimo 8 caracteres</li>
-                    <li id="upper-case" class="invalid">Una mayúscula</li>
-                    <li id="lower-case" class="invalid">Una minúscula</li>
-                    <li id="number" class="invalid">Un número</li>
-                    <li id="special-char" class="invalid">Un carácter especial</li>
-                </ul>
-            </div>
-            <button id="registerBtn">Registrar</button>
-
+            
             <h2>Inicio de sesión</h2>
             <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
             <input type="password" id="loginPassword" placeholder="Contraseña" required>
             <button id="loginBtn">Iniciar Sesión</button>
             <a href="reset-password.html" id="resetPasswordLink" style="background-color: #f44336; padding: 10px 20px; color: white; border-radius: 5px; text-align: center; text-decoration: none; font-size: 16px;">¿Olvidaste tu contraseña?</a>
         </div>
+        
+        <a href="register.html" id="goToRegister">Registrarse</a>
 
         <div class="auth-status" id="auth-status" style="display:none;">
             <p>Has iniciado sesión como: <span id="userEmail"></span></p>
@@ -231,8 +212,10 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-        import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        // Importamos setDoc, pero solo lo usamos en el registro (que está en register.html), así que podemos quitarlo de aquí si queremos ser estrictos. 
+        // No obstante, lo dejo ya que el módulo de Firestore es necesario.
+        import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; 
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -258,92 +241,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.querySelector('#rankingTable tbody');
             const addPlayerLink = document.getElementById('addPlayerLink');
-
-            // Elementos de autenticación
+            const goToRegister = document.getElementById('goToRegister'); // Nuevo elemento
             const authForms = document.getElementById('auth-forms');
             const authStatus = document.getElementById('auth-status');
             const userEmailSpan = document.getElementById('userEmail');
-            const registerEmail = document.getElementById('registerEmail');
-            const registerPassword = document.getElementById('registerPassword');
-            const registerBtn = document.getElementById('registerBtn');
             const loginEmail = document.getElementById('loginEmail');
             const loginPassword = document.getElementById('loginPassword');
             const loginBtn = document.getElementById('loginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
-            
-            // Elementos de validación de contraseña
-            const minLengthEl = document.getElementById('min-length');
-            const upperCaseEl = document.getElementById('upper-case');
-            const lowerCaseEl = document.getElementById('lower-case');
-            const numberEl = document.getElementById('number');
-            const specialCharEl = document.getElementById('special-char');
 
-            // Comprobación en tiempo real de la contraseña (solo cambia colores)
-            registerPassword.addEventListener('keyup', () => {
-                const password = registerPassword.value;
-                const hasNumber = /[0-9]/.test(password);
-                const hasLowerCase = /[a-z]/.test(password);
-                const hasUpperCase = /[A-Z]/.test(password);
-                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
-                const minLength = password.length >= 8;
-
-                // Actualizar los estados de las condiciones visualmente
-                minLengthEl.className = minLength ? 'valid' : 'invalid';
-                upperCaseEl.className = hasUpperCase ? 'valid' : 'invalid';
-                lowerCaseEl.className = hasLowerCase ? 'valid' : 'invalid';
-                numberEl.className = hasNumber ? 'valid' : 'invalid';
-                specialCharEl.className = hasSpecialChar ? 'valid' : 'invalid';
-            });
-
-            // Lógica de autenticación
-            registerBtn.addEventListener('click', async (event) => {
-                event.preventDefault(); // Previene el envío del formulario
-
-                const password = registerPassword.value;
-                const email = registerEmail.value;
-
-                // VALIDACIÓN DE CONTRASEÑA
-                const hasNumber = /[0-9]/.test(password);
-                const hasLowerCase = /[a-z]/.test(password);
-                const hasUpperCase = /[A-Z]/.test(password);
-                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
-                const minLength = password.length >= 8;
-                
-                // Si la validación de la contraseña falla, muestra una alerta y detiene la función
-                if (!hasNumber || !hasLowerCase || !hasUpperCase || !hasSpecialChar || !minLength) {
-                    alert("La contraseña no cumple con todos los requisitos. Por favor, revisa las condiciones.");
-                    return;
-                }
-
-                try {
-                    // Genera el token de reCAPTCHA solo si la contraseña es válida
-                    const token = await grecaptcha.execute('6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ', {action: 'submit'});
-                    
-                    // Llama a la función de registro de Firebase
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-                    
-                    // Envía el email de verificación
-                    await sendEmailVerification(user);
-
-                    // Crea el documento inicial del jugador en Firestore
-                    await setDoc(doc(db, "jugadores", user.uid), {
-                        name: 'Nuevo Jugador',
-                        points: 0,
-                        played: 0,
-                        wins: 0,
-                        losses: 0,
-                        role: 'user'
-                    });
-                    
-                    alert("Usuario registrado con éxito. ¡Revisa tu correo electrónico para verificar tu cuenta!");
-                    
-                } catch (error) {
-                    // Captura cualquier error que pueda ocurrir durante el proceso (reCAPTCHA, Firebase)
-                    const errorMessage = error.message;
-                    alert("Error al registrar: " + errorMessage);
-                }
-            });
+            // ❌ EL CÓDIGO DE REGISTRO SE HA ELIMINADO DE ESTE ARCHIVO ❌
 
             loginBtn.addEventListener('click', () => {
                 signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
@@ -374,6 +281,7 @@
                 if (user && user.emailVerified) {
                     authForms.style.display = 'none';
                     authStatus.style.display = 'block';
+                    goToRegister.style.display = 'none'; // Oculta el botón de registro si el usuario está logueado
                     userEmailSpan.textContent = user.email;
 
                     // Comprobar el rol del usuario
@@ -384,8 +292,10 @@
                         addPlayerLink.style.display = 'none';
                     }
                 } else {
+                    // Muestra los formularios de acceso si no hay usuario logueado
                     authForms.style.display = 'flex';
                     authStatus.style.display = 'none';
+                    goToRegister.style.display = 'block'; // Muestra el botón de registro
                     addPlayerLink.style.display = 'none';
                 }
             });
