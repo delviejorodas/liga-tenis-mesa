@@ -97,7 +97,7 @@
             text-decoration: underline;
         }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?render=TU_CLAVE_DEL_SITIO"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
 </head>
 <body>
 
@@ -195,7 +195,7 @@
 
                 try {
                     // Genera el token de reCAPTCHA
-                    const token = await grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'});
+                    const token = await grecaptcha.execute('6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ', {action: 'submit'});
                     
                     // 1. Crea la cuenta de usuario en Firebase Auth
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
