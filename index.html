@@ -86,7 +86,7 @@
         }
 
         #addPlayerLink {
-            display: none; /* Ocultar por defecto */
+            display: none; 
             width: 250px;
             margin: 20px auto;
             padding: 10px 20px;
@@ -263,7 +263,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-        import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; 
+        // IMPORTANTE: Se añadieron where, limit, getDocs, updateDoc
+        import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc, where, limit, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; 
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
@@ -302,7 +303,7 @@
             const adminTools = document.getElementById('admin-tools');
             const addPlayerLink = document.getElementById('addPlayerLink');
             
-            // Nuevos elementos para el modo Admin
+            // Elementos para el modo Admin
             const adminModeToggleDiv = document.getElementById('admin-mode-toggle');
             const viewModeSwitch = document.getElementById('viewModeSwitch');
 
@@ -334,16 +335,42 @@
 
             
             // Función central para manejar la visibilidad según el rol y el modo
-            async function handleUserRoles(user, userDoc) {
+            async function handleUserRoles(user, userDocFromAuth) {
                 // Reiniciar visibilidad de contenidos avanzados
                 advancedContent.style.display = 'none';
                 playerTools.style.display = 'none';
                 adminTools.style.display = 'none';
                 adminModeToggleDiv.style.display = 'none'; // Ocultar switch por defecto
+                
+                let userDoc = userDocFromAuth;
+                let isPlayer = userDoc && userDoc.exists();
 
                 if (user && user.emailVerified) {
                     
                     // --- ROL 2, 3, 4: USUARIO REGISTRADO Y VERIFICADO ---
+
+                    // =========================================================================
+                    // ETAPA 1: Búsqueda por Email Asociado (Si no tiene documento por UID)
+                    // Esta lógica es crucial para asociar perfiles creados por el administrador
+                    // =========================================================================
+                    if (!isPlayer) {
+                        const email = user.email.toLowerCase(); // Correo del usuario logueado
+                        const q = query(collection(db, "jugadores"), where("associatedEmail", "==", email), limit(1));
+                        const emailSnapshot = await getDocs(q);
+
+                        if (!emailSnapshot.empty) {
+                            // ¡Encontrado! Este es el perfil del jugador asociado al email
+                            userDoc = emailSnapshot.docs[0];
+                            isPlayer = true;
+                            
+                            // OPTIMIZACIÓN: Asociar el UID al perfil para permitir futuras ediciones de perfil
+                            const jugadorId = userDoc.id;
+                            await updateDoc(doc(db, "jugadores", jugadorId), {
+                                id: user.uid, // Guardamos el UID para referencia
+                                // Opcional: asociadoEmail: deleteField() si quieres limpiar
+                            });
+                        }
+                    }
                     
                     advancedContent.style.display = 'block';
                     authForms.style.display = 'none';
@@ -351,7 +378,6 @@
                     authStatus.style.display = 'block';
                     userEmailSpan.textContent = user.email;
 
-                    let isPlayer = userDoc && userDoc.exists();
                     let isAdmin = false;
 
                     if (isPlayer) {
@@ -370,7 +396,7 @@
                                 adminTools.style.display = 'block'; 
                                 addPlayerLink.style.display = 'block';
                             } else {
-                                // MODO USUARIO/JUGADOR
+                                // MODO USUARIO/JUGADOR (Admin viendo como jugador)
                                 adminTools.style.display = 'none';
                                 addPlayerLink.style.display = 'none';
                             }
@@ -420,7 +446,7 @@
             });
 
 
-            // --- NUEVO EVENT LISTENER para el SWITCH ---
+            // --- EVENT LISTENER para el SWITCH ---
             viewModeSwitch.addEventListener('change', () => {
                 // 1. Guardar la elección del usuario en la memoria local
                 localStorage.setItem('adminViewMode', viewModeSwitch.checked);
@@ -430,7 +456,8 @@
                 if (user) {
                     const userDocRef = doc(db, "jugadores", user.uid);
                     getDoc(userDocRef).then(userDoc => {
-                        handleUserRoles(user, userDoc);
+                        // No necesitamos el await aquí, ya que getDoc devuelve la promesa resuelta
+                        handleUserRoles(user, userDoc); 
                     });
                 }
             });
@@ -442,7 +469,9 @@
                 tableBody.innerHTML = '';
                 snapshot.forEach((doc) => {
                     const player = doc.data();
-                    const docId = doc.id;
+                    // Usamos el ID del documento, que ahora puede ser el UID del usuario (para admins antiguos)
+                    // o un ID automático (para jugadores nuevos).
+                    const docId = doc.id; 
                     
                     const row = document.createElement('tr');
                     row.innerHTML = `
