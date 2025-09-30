@@ -69,7 +69,7 @@
         }
         
         #addPlayerLink {
-            display: none; /* Ocultar por defecto, se mostrará con JavaScript */
+            display: none; /* Ocultar por defecto */
             width: 250px;
             margin: 20px auto;
             padding: 10px 20px;
@@ -104,6 +104,14 @@
 
         #goToRegister:hover {
             background-color: #cc372c;
+        }
+        
+        /* Estilos para las nuevas secciones de contenido */
+        #player-tools, #admin-tools, #advanced-content {
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
         }
 
         .ranking-table {
@@ -176,7 +184,6 @@
         <h1>Ranking de Jugadores</h1>
 
         <div class="auth-forms" id="auth-forms">
-            
             <h2>Inicio de sesión</h2>
             <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
             <input type="password" id="loginPassword" placeholder="Contraseña" required>
@@ -191,22 +198,41 @@
             <button id="logoutBtn">Cerrar Sesión</button>
         </div>
 
-        <a href="add-player.html" id="addPlayerLink" style="display: none; width: 250px; margin: 20px auto; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; text-align: center; text-decoration: none;">Añadir Nuevo Jugador</a>
+        <div id="basic-content">
+            <h2>Clasificación General</h2>
+            <table class="ranking-table" id="rankingTable">
+                <thead>
+                    <tr>
+                        <th>Posición</th>
+                        <th>Jugador</th>
+                        <th>Puntos</th>
+                        <th>Partidos Jugados</th>
+                        <th>Victorias</th>
+                        <th>Derrotas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+        
+        <div id="advanced-content" style="display:none;">
+            <h2>Noticias y Contenido Exclusivo</h2>
+            <p>Este es el contenido adicional visible para cualquier usuario que haya iniciado sesión (Registrado No Jugador, Jugador, Admin).</p>
+        </div>
 
-        <table class="ranking-table" id="rankingTable">
-            <thead>
-                <tr>
-                    <th>Posición</th>
-                    <th>Jugador</th>
-                    <th>Puntos</th>
-                    <th>Partidos Jugados</th>
-                    <th>Victorias</th>
-                    <th>Derrotas</th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
-        </table>
+        <div id="player-tools" style="display:none;">
+            <h2>Mi Perfil</h2>
+            <a href="player-profile.html" id="myProfileLink">Ver mi Perfil de Jugador</a>
+            <p>Solo visible para usuarios con perfil de jugador asociado.</p>
+        </div>
+
+        <div id="admin-tools" style="display:none;">
+            <h2>Panel de Administración</h2>
+            <p>Control total de la aplicación.</p>
+            <a href="add-player.html" id="addPlayerLink">Añadir Nuevo Jugador</a>
+            <p>Solo visible para administradores.</p>
+        </div>
     </div>
 
     <script type="module">
@@ -236,8 +262,6 @@
         
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.querySelector('#rankingTable tbody');
-            const addPlayerLink = document.getElementById('addPlayerLink');
-            const goToRegister = document.getElementById('goToRegister'); 
             const authForms = document.getElementById('auth-forms');
             const authStatus = document.getElementById('auth-status');
             const userEmailSpan = document.getElementById('userEmail');
@@ -245,6 +269,13 @@
             const loginPassword = document.getElementById('loginPassword');
             const loginBtn = document.getElementById('loginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
+            const goToRegister = document.getElementById('goToRegister'); 
+            
+            // Nuevos elementos para controlar la visibilidad por rol
+            const advancedContent = document.getElementById('advanced-content');
+            const playerTools = document.getElementById('player-tools');
+            const adminTools = document.getElementById('admin-tools');
+            const addPlayerLink = document.getElementById('addPlayerLink');
 
             loginBtn.addEventListener('click', () => {
                 signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
@@ -254,8 +285,7 @@
                             signOut(auth);
                             alert("Tu correo electrónico no ha sido verificado. Revisa tu bandeja de entrada.");
                         } else {
-                            // La verificación del perfil se hará en onAuthStateChanged
-                            alert("Sesión iniciada con éxito. Comprobando perfil...");
+                            alert("Sesión iniciada con éxito. Comprobando perfil y permisos...");
                         }
                     })
                     .catch((error) => {
@@ -273,36 +303,52 @@
             });
 
             onAuthStateChanged(auth, async (user) => {
+                // Reiniciar visibilidad de contenidos avanzados
+                advancedContent.style.display = 'none';
+                playerTools.style.display = 'none';
+                adminTools.style.display = 'none';
+
                 if (user && user.emailVerified) {
                     
-                    // Comprobar si el usuario tiene un perfil de jugador en Firestore
-                    const userDoc = await getDoc(doc(db, "jugadores", user.uid));
+                    // --- ROL 2, 3, 4: USUARIO REGISTRADO Y VERIFICADO ---
                     
-                    if (!userDoc.exists()) {
-                        // Si el usuario está autenticado y verificado, pero NO tiene perfil de jugador:
-                        signOut(auth);
-                        alert("Tu cuenta de usuario no está asociada a ningún jugador en el ranking. Contacta con un administrador.");
-                        // Sigue la ejecución en el bloque 'else' (no logueado)
-                    } else {
-                        // El usuario está logueado, verificado Y tiene perfil de jugador.
-                        authForms.style.display = 'none';
-                        authStatus.style.display = 'block';
-                        goToRegister.style.display = 'none';
-                        userEmailSpan.textContent = user.email;
+                    // Mostrar contenidos avanzados de inicio
+                    advancedContent.style.display = 'block';
+                    authForms.style.display = 'none';
+                    goToRegister.style.display = 'none';
+                    authStatus.style.display = 'block';
+                    userEmailSpan.textContent = user.email;
 
-                        // Comprobar el rol del usuario (Admin o User)
-                        if (userDoc.data().role === 'admin') {
+                    // Comprobar si el usuario tiene un perfil de jugador en Firestore
+                    const userDocRef = doc(db, "jugadores", user.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    
+                    if (userDoc.exists()) {
+                        // --- ROL 3, 4: JUGADOR O ADMINISTRADOR ---
+                        playerTools.style.display = 'block'; // Mostrar herramientas de jugador
+
+                        const role = userDoc.data().role;
+
+                        if (role === 'admin') {
+                            // ROL 4: ADMINISTRADOR
+                            adminTools.style.display = 'block'; 
                             addPlayerLink.style.display = 'block';
+                            
                         } else {
+                            // ROL 3: REGISTRADO JUGADOR (Role = 'user' o cualquier otro)
+                            // Solo se ven las herramientas de jugador
                             addPlayerLink.style.display = 'none';
                         }
+                    } else {
+                        // ROL 2: REGISTRADO NO JUGADOR
+                        // Solo ve el contenido avanzado (advanced-content)
                     }
+
                 } else {
-                    // Muestra los formularios de acceso si no hay usuario logueado o verificado
+                    // --- ROL 1: NO REGISTRADO ---
                     authForms.style.display = 'flex';
                     authStatus.style.display = 'none';
-                    goToRegister.style.display = 'block'; 
-                    addPlayerLink.style.display = 'none';
+                    goToRegister.style.display = 'block';
                 }
             });
 

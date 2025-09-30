@@ -97,7 +97,7 @@
             text-decoration: underline;
         }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?render=TU_CLAVE_DEL_SITIO"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
 </head>
 <body>
 
@@ -126,7 +126,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        // Ya no necesitamos setDoc aquí
+        // Ya no necesitamos setDoc ni getFirestore
         import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
@@ -141,7 +141,6 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        // const db = getFirestore(app); // Ya no necesitamos Firestore aquí
         const auth = getAuth(app);
 
         auth.languageCode = 'es';
@@ -195,7 +194,7 @@
 
                 try {
                     // Genera el token de reCAPTCHA
-                    const token = await grecaptcha.execute('TU_CLAVE_DEL_SITIO', {action: 'submit'});
+                    const token = await grecaptcha.execute('6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ', {action: 'submit'});
                     
                     // 1. Crea la cuenta de usuario en Firebase Auth
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -203,8 +202,6 @@
                     
                     // 2. Envía el email de verificación
                     await sendEmailVerification(user);
-
-                    // ❌ La creación del documento en Firestore (Perfil de Jugador) fue eliminada de aquí ❌
                     
                     alert("¡Registro exitoso! Revisa tu correo electrónico para verificar tu cuenta y luego inicia sesión.");
                     window.location.href = 'index.html'; // Redirige al inicio de sesión
