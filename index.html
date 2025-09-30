@@ -68,6 +68,23 @@
             margin-bottom: 20px;
         }
         
+        #admin-mode-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: #fff3cd; /* Color de advertencia sutil */
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        #admin-mode-toggle label {
+            font-weight: bold;
+            color: #856404;
+        }
+
         #addPlayerLink {
             display: none; /* Ocultar por defecto */
             width: 250px;
@@ -195,6 +212,14 @@
 
         <div class="auth-status" id="auth-status" style="display:none;">
             <p>Has iniciado sesión como: <span id="userEmail"></span></p>
+            
+            <div id="admin-mode-toggle" style="display:none; margin-bottom: 10px;">
+                <label for="viewModeSwitch">
+                    <input type="checkbox" id="viewModeSwitch"> 
+                    Ver en **Modo Administrador**
+                </label>
+            </div>
+
             <button id="logoutBtn">Cerrar Sesión</button>
         </div>
 
@@ -271,11 +296,16 @@
             const logoutBtn = document.getElementById('logoutBtn');
             const goToRegister = document.getElementById('goToRegister'); 
             
-            // Nuevos elementos para controlar la visibilidad por rol
+            // Elementos para controlar la visibilidad por rol
             const advancedContent = document.getElementById('advanced-content');
             const playerTools = document.getElementById('player-tools');
             const adminTools = document.getElementById('admin-tools');
             const addPlayerLink = document.getElementById('addPlayerLink');
+            
+            // Nuevos elementos para el modo Admin
+            const adminModeToggleDiv = document.getElementById('admin-mode-toggle');
+            const viewModeSwitch = document.getElementById('viewModeSwitch');
+
 
             loginBtn.addEventListener('click', () => {
                 signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
@@ -302,56 +332,110 @@
                 });
             });
 
-            onAuthStateChanged(auth, async (user) => {
+            
+            // Función central para manejar la visibilidad según el rol y el modo
+            async function handleUserRoles(user, userDoc) {
                 // Reiniciar visibilidad de contenidos avanzados
                 advancedContent.style.display = 'none';
                 playerTools.style.display = 'none';
                 adminTools.style.display = 'none';
+                adminModeToggleDiv.style.display = 'none'; // Ocultar switch por defecto
 
                 if (user && user.emailVerified) {
                     
                     // --- ROL 2, 3, 4: USUARIO REGISTRADO Y VERIFICADO ---
                     
-                    // Mostrar contenidos avanzados de inicio
                     advancedContent.style.display = 'block';
                     authForms.style.display = 'none';
                     goToRegister.style.display = 'none';
                     authStatus.style.display = 'block';
                     userEmailSpan.textContent = user.email;
 
-                    // Comprobar si el usuario tiene un perfil de jugador en Firestore
-                    const userDocRef = doc(db, "jugadores", user.uid);
-                    const userDoc = await getDoc(userDocRef);
-                    
-                    if (userDoc.exists()) {
+                    let isPlayer = userDoc && userDoc.exists();
+                    let isAdmin = false;
+
+                    if (isPlayer) {
                         // --- ROL 3, 4: JUGADOR O ADMINISTRADOR ---
-                        playerTools.style.display = 'block'; // Mostrar herramientas de jugador
-
+                        
                         const role = userDoc.data().role;
-
+                        playerTools.style.display = 'block'; // Mostrar herramientas de jugador
+                        
                         if (role === 'admin') {
-                            // ROL 4: ADMINISTRADOR
-                            adminTools.style.display = 'block'; 
-                            addPlayerLink.style.display = 'block';
-                            
+                            isAdmin = true;
+                            adminModeToggleDiv.style.display = 'block'; // Mostrar el switch a los administradores
+
+                            // Comprobar el estado actual del switch
+                            if (viewModeSwitch.checked) {
+                                // MODO ADMINISTRADOR ACTIVO
+                                adminTools.style.display = 'block'; 
+                                addPlayerLink.style.display = 'block';
+                            } else {
+                                // MODO USUARIO/JUGADOR
+                                adminTools.style.display = 'none';
+                                addPlayerLink.style.display = 'none';
+                            }
                         } else {
-                            // ROL 3: REGISTRADO JUGADOR (Role = 'user' o cualquier otro)
-                            // Solo se ven las herramientas de jugador
+                            // ROL 3: REGISTRADO JUGADOR
                             addPlayerLink.style.display = 'none';
                         }
                     } else {
                         // ROL 2: REGISTRADO NO JUGADOR
-                        // Solo ve el contenido avanzado (advanced-content)
+                        // Solo ve el contenido avanzado
                     }
-
                 } else {
                     // --- ROL 1: NO REGISTRADO ---
                     authForms.style.display = 'flex';
                     authStatus.style.display = 'none';
                     goToRegister.style.display = 'block';
                 }
+            }
+
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user && user.emailVerified) {
+                    const userDocRef = doc(db, "jugadores", user.uid);
+                    const userDoc = await getDoc(userDocRef);
+
+                    // Inicializar el modo de visualización solo para administradores
+                    if (userDoc.exists() && userDoc.data().role === 'admin') {
+                         // Leer el valor guardado. Si no existe, usamos 'false' como predeterminado (Modo Usuario)
+                        const savedMode = localStorage.getItem('adminViewMode');
+                        if (savedMode === null) {
+                            viewModeSwitch.checked = false; 
+                            localStorage.setItem('adminViewMode', 'false');
+                        } else {
+                            viewModeSwitch.checked = (savedMode === 'true');
+                        }
+                    } else {
+                        // Asegurarse de que no hay un modo de administración guardado para no-admins
+                        localStorage.removeItem('adminViewMode');
+                    }
+
+                    handleUserRoles(user, userDoc);
+
+                } else {
+                    // ROL 1: NO REGISTRADO
+                    handleUserRoles(user, null);
+                }
             });
 
+
+            // --- NUEVO EVENT LISTENER para el SWITCH ---
+            viewModeSwitch.addEventListener('change', () => {
+                // 1. Guardar la elección del usuario en la memoria local
+                localStorage.setItem('adminViewMode', viewModeSwitch.checked);
+
+                // 2. Recargar la lógica de roles (usando la función que creamos)
+                const user = auth.currentUser;
+                if (user) {
+                    const userDocRef = doc(db, "jugadores", user.uid);
+                    getDoc(userDocRef).then(userDoc => {
+                        handleUserRoles(user, userDoc);
+                    });
+                }
+            });
+            
+            // Lógica de carga del Ranking
             onSnapshot(query(collection(db, "jugadores"), orderBy("points", "desc")), (snapshot) => {
                 const players = [];
                 let position = 1;
