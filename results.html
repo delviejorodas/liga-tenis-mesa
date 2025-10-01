@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Partidos</title>
+    <style>
+        /* Puedes reutilizar aquí los estilos de la tabla de ranking */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; color: #0056b3; }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .results-table th, .results-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .results-table th {
+            background-color: #007bff;
+            color: white;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Resultados de Partidos Jugados</h1>
+        
+        <table class="results-table" id="resultsTable">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Local</th>
+                    <th>Resultado</th>
+                    <th>Visitante</th>
+                    <th>Ganador</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+        // TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
+            authDomain: "liga-tenis-mesa.firebaseapp.com",
+            projectId: "liga-tenis-mesa",
+            storageBucket: "liga-tenis-mesa.firebasestorage.app",
+            messagingSenderId: "736920103478",
+            appId: "1:736920103478:web:f14cf590148ec0ce13c697",
+            measurementId: "G-1L1JTWHVQE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.querySelector('#resultsTable tbody');
+
+            // Escuchar cambios en la colección 'partidos' ordenados por fecha descendente
+            onSnapshot(query(collection(db, "partidos"), orderBy("date", "desc")), (snapshot) => {
+                tableBody.innerHTML = ''; // Limpiar la tabla
+                snapshot.forEach((doc) => {
+                    const match = doc.data();
+                    
+                    const date = match.date.toDate().toLocaleDateString('es-ES'); // Formatear la fecha
+                    
+                    let winnerName = match.player1Score > match.player2Score ? match.player1Name : match.player2Name;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${date}</td>
+                        <td>${match.player1Name}</td>
+                        <td>${match.player1Score} - ${match.player2Score}</td>
+                        <td>${match.player2Name}</td>
+                        <td>${winnerName}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

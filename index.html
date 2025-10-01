@@ -65,7 +65,7 @@
         }
 
         /* Contenido y Herramientas */
-        #admin-tools, #advanced-content { /* player-tools ha sido eliminado */
+        #admin-tools, #advanced-content {
             padding: 15px;
             margin-top: 20px;
             border: 1px dashed #ccc;
@@ -240,6 +240,8 @@
             <ul>
                 <li><a href="index.html">Ranking</a></li> 
                 
+                <li><a href="results.html">Resultados</a></li> 
+                
                 <li id="nav-link-register" style="display:none;"><a href="register.html">Registrarse</a></li>
                 
                 <li id="nav-link-player" style="display:none;"><a href="player-profile.html">Mi Perfil</a></li>
@@ -308,7 +310,9 @@
         <div id="admin-tools" style="display:none;">
             <h2>Panel de Administración</h2>
             <p>Control total de la aplicación.</p>
-            <a href="add-player.html" id="addPlayerLink">Gestionar Jugadores</a> 
+            <a href="add-player.html" id="addPlayerLink" style="display: block; margin-bottom: 10px; background-color: #28a745; color: white; padding: 10px; border-radius: 5px; text-align: center; text-decoration: none;">Gestionar Jugadores</a>
+            
+            <a href="add-result.html" style="display: block; background-color: #d9534f; color: white; padding: 10px; border-radius: 5px; text-align: center; text-decoration: none;">Introducir Resultados</a>
         </div>
     </div>
 
@@ -352,9 +356,8 @@
 
             // Elementos para controlar la visibilidad por rol
             const advancedContent = document.getElementById('advanced-content');
-            // const playerTools = document.getElementById('player-tools'); // Eliminado del HTML
             const adminTools = document.getElementById('admin-tools');
-            const addPlayerLink = document.getElementById('addPlayerLink'); // Enlace en el cuerpo del admin
+            const addPlayerLink = document.getElementById('addPlayerLink');
             
             // Elementos para el menú responsive
             const menuToggle = document.getElementById('menuToggle');

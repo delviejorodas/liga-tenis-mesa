@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introducir Resultado de Partido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #d9534f;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group select, 
+        .form-group input[type="number"],
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .scores-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .scores-group > div {
+            flex: 1;
+        }
+
+        .scores-group label {
+            text-align: center;
+        }
+
+        .scores-group h2 {
+            margin: 0;
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #c9302c;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Registrar Resultado de Partido</h1>
+
+        <form id="addResultForm">
+            
+            <div class="form-group">
+                <label for="matchDate">Fecha del Partido:</label>
+                <input type="date" id="matchDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="player1">Jugador Local (Player 1):</label>
+                <select id="player1" required disabled>
+                    <option value="" disabled selected>Cargando jugadores...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="player2">Jugador Visitante (Player 2):</label>
+                <select id="player2" required disabled>
+                    <option value="" disabled selected>Cargando jugadores...</option>
+                </select>
+            </div>
+            
+            <div class="scores-group">
+                <div class="form-group">
+                    <label>Puntuación Local:</label>
+                    <input type="number" id="score1" min="0" required>
+                </div>
+                
+                <h2>-</h2>
+                
+                <div class="form-group">
+                    <label>Puntuación Visitante:</label>
+                    <input type="number" id="score2" min="0" required>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" disabled>Guardar Resultado y Actualizar Ranking</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, runTransaction } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        // NO OLVIDAR AÑADIR LA LÓGICA DE PROTECCIÓN DE ROL DE ADMINISTRADOR AQUÍ
+        // Para simplificar, la omitimos en este snippet, pero es VITAL.
+        
+        // TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
+            authDomain: "liga-tenis-mesa.firebaseapp.com",
+            projectId: "liga-tenis-mesa",
+            storageBucket: "liga-tenis-mesa.firebasestorage.app",
+            messagingSenderId: "736920103478",
+            appId: "1:736920103478:web:f14cf590148ec0ce13c697",
+            measurementId: "G-1L1JTWHVQE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const playersCollection = collection(db, "jugadores");
+        const matchesCollection = collection(db, "partidos");
+
+        // Función para establecer la fecha actual por defecto
+        function setTodayDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('matchDate').value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Función para cargar los jugadores en los desplegables
+        async function loadPlayers() {
+            const player1Select = document.getElementById('player1');
+            const player2Select = document.getElementById('player2');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            player1Select.innerHTML = '';
+            player2Select.innerHTML = '';
+
+            try {
+                const snapshot = await getDocs(playersCollection);
+                
+                // Opción por defecto
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "--- Seleccionar Jugador ---";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                
+                player1Select.appendChild(defaultOption.cloneNode(true));
+                player2Select.appendChild(defaultOption.cloneNode(true));
+
+
+                snapshot.forEach((doc) => {
+                    const player = doc.data();
+                    const id = doc.id;
+                    
+                    const option1 = document.createElement('option');
+                    option1.value = id;
+                    option1.textContent = player.name;
+                    
+                    const option2 = option1.cloneNode(true);
+
+                    player1Select.appendChild(option1);
+                    player2Select.appendChild(option2);
+                });
+                
+                player1Select.disabled = false;
+                player2Select.disabled = false;
+                submitBtn.disabled = false;
+
+            } catch (error) {
+                console.error("Error al cargar jugadores:", error);
+                alert("Error al cargar jugadores. Revisa la consola.");
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setTodayDate();
+            loadPlayers();
+        });
+
+
+        // Lógica para guardar resultado y actualizar ranking
+        document.getElementById('addResultForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const player1Id = document.getElementById('player1').value;
+            const player2Id = document.getElementById('player2').value;
+            const player1Name = document.getElementById('player1').options[document.getElementById('player1').selectedIndex].text;
+            const player2Name = document.getElementById('player2').options[document.getElementById('player2').selectedIndex].text;
+            const score1 = parseInt(document.getElementById('score1').value);
+            const score2 = parseInt(document.getElementById('score2').value);
+            const matchDate = new Date(document.getElementById('matchDate').value);
+
+            if (player1Id === player2Id) {
+                alert("Error: El jugador local y el visitante no pueden ser el mismo.");
+                return;
+            }
+
+            if (score1 === score2) {
+                alert("Error: No se permiten empates en esta liga (¡Deben jugar hasta desempatar!).");
+                return;
+            }
+
+            let winnerId, loserId, winnerName, loserName, winnerScore, loserScore;
+
+            if (score1 > score2) {
+                winnerId = player1Id;
+                loserId = player2Id;
+                winnerName = player1Name;
+                loserName = player2Name;
+                winnerScore = score1;
+                loserScore = score2;
+            } else {
+                winnerId = player2Id;
+                loserId = player1Id;
+                winnerName = player2Name;
+                loserName = player1Name;
+                winnerScore = score2;
+                loserScore = score1;
+            }
+
+            try {
+                // 1. Registrar el partido en la colección 'partidos'
+                await addDoc(matchesCollection, {
+                    player1Id: player1Id,
+                    player2Id: player2Id,
+                    player1Name: player1Name,
+                    player2Name: player2Name,
+                    player1Score: score1,
+                    player2Score: score2,
+                    date: matchDate,
+                    winner: winnerName,
+                    loser: loserName
+                });
+
+                // 2. Actualizar el ranking de los jugadores usando una transacción
+                // Esto asegura que ambos perfiles se actualicen atómicamente.
+                await runTransaction(db, async (transaction) => {
+                    
+                    // a) Obtener referencias y datos del ganador
+                    const winnerRef = doc(db, "jugadores", winnerId);
+                    const winnerDoc = await transaction.get(winnerRef);
+                    if (!winnerDoc.exists()) { throw "¡Ganador no encontrado!"; }
+                    const winnerData = winnerDoc.data();
+
+                    // b) Obtener referencias y datos del perdedor
+                    const loserRef = doc(db, "jugadores", loserId);
+                    const loserDoc = await transaction.get(loserRef);
+                    if (!loserDoc.exists()) { throw "¡Perdedor no encontrado!"; }
+                    const loserData = loserDoc.data();
+                    
+                    // c) Actualizar Ganador (3 puntos, 1 jugado, 1 victoria)
+                    transaction.update(winnerRef, {
+                        points: winnerData.points + 3,
+                        played: winnerData.played + 1,
+                        wins: winnerData.wins + 1
+                    });
+
+                    // d) Actualizar Perdedor (1 punto, 1 jugado, 1 derrota)
+                    transaction.update(loserRef, {
+                        points: loserData.points + 1,
+                        played: loserData.played + 1,
+                        losses: loserData.losses + 1
+                    });
+                });
+
+
+                alert(`Resultado registrado con éxito. Ranking actualizado: ${winnerName} gana (${winnerScore}-${loserScore}) y obtiene 3 puntos. ${loserName} obtiene 1 punto.`);
+                document.getElementById('addResultForm').reset();
+                setTodayDate(); // Vuelve a la fecha actual
+
+            } catch (error) {
+                console.error("Error al registrar resultado o actualizar ranking:", error);
+                alert("Error crítico. No se pudo registrar el resultado ni actualizar el ranking. Revisa la consola.");
+            }
+        });
+    </script>
+</body>
+</html>
