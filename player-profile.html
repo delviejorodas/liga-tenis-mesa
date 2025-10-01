@@ -3,129 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil de Jugador</title>
+    <title>Perfil del Jugador</title>
     <style>
-        /* Puedes copiar los estilos de tu index.html para la consistencia */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            text-align: center;
-            color: #0056b3;
-        }
-
-        .profile-info {
-            font-size: 1.2em;
-            line-height: 1.6;
-        }
-
-        .profile-info p {
-            margin: 10px 0;
-        }
-
-        .profile-info strong {
-            color: #555;
-        }
-
-        .edit-form-container {
-            margin-top: 20px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            display: none;
-        }
-
-        .edit-form-container input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-
-        .edit-button, .save-button {
-            display: block;
-            margin-top: 10px;
-            padding: 10px 20px;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .edit-button {
-            background-color: #28a745;
-        }
-
-        .save-button {
-            background-color: #007bff;
-        }
-
-        .back-link {
-            display: block;
-            margin-top: 20px;
-            text-align: center;
-            font-size: 1.1em;
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
+        /* Reutiliza tus estilos principales de index.html */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 600px; margin: 50px auto; padding: 30px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; color: #0056b3; }
+        .detail-row { margin-bottom: 10px; padding: 8px; border-bottom: 1px dashed #eee; }
+        .detail-row strong { display: inline-block; width: 150px; }
+        
+        /* Estilo para el email exclusivo del Admin */
+        #adminEmailDisplay { 
+            color: #d9534f; 
+            font-weight: bold; 
+            background-color: #fcebeb;
+            padding: 10px;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 id="playerName">Cargando perfil...</h1>
-        <div class="profile-info" id="playerProfileInfo">
-            <p><strong>Puntos:</strong> <span id="playerPoints"></span></p>
-            <p><strong>Partidos Jugados:</strong> <span id="playerPlayed"></span></p>
-            <p><strong>Victorias:</strong> <span id="playerWins"></span></p>
-            <p><strong>Derrotas:</strong> <span id="playerLosses"></span></p>
-        </div>
+        <h1 id="playerNameTitle">Cargando Perfil...</h1>
+
+        <div id="profileDetails" style="display:none;">
+            
+            <div class="detail-row">
+                <strong>Nombre:</strong> <span id="playerName"></span>
+            </div>
+            <div class="detail-row">
+                <strong>Puntos:</strong> <span id="playerPoints"></span>
+            </div>
+            <div class="detail-row">
+                <strong>Victorias/Derrotas:</strong> <span id="playerRecord"></span>
+            </div>
+
+            <hr style="margin: 20px 0;">
+
+            <div id="emailAdminSection" style="display:none;">
+                <h2>Información de Cuenta (Solo Admin)</h2>
+                <div class="detail-row" id="adminEmailDisplay">
+                    <strong>Email Asociado:</strong> <span id="playerEmail"></span>
+                </div>
+                <p>Este email está asociado a la cuenta de usuario de este jugador.</p>
+            </div>
+            
+            </div>
         
-        <button id="editProfileBtn" class="edit-button" style="display: none;">Editar Perfil</button>
-
-        <div id="editForm" class="edit-form-container">
-            <h2>Editar Perfil</h2>
-            <p>Edita la información de tu perfil. Los campos de puntos, victorias y derrotas solo pueden ser modificados por un administrador.</p>
-            <label for="editPlayerName">Nombre:</label>
-            <input type="text" id="editPlayerName">
-            <label for="editPlayerPoints">Puntos:</label>
-            <input type="number" id="editPlayerPoints" disabled>
-            <label for="editPlayerPlayed">Partidos Jugados:</label>
-            <input type="number" id="editPlayerPlayed" disabled>
-            <label for="editPlayerWins">Victorias:</label>
-            <input type="number" id="editPlayerWins" disabled>
-            <label for="editPlayerLosses">Derrotas:</label>
-            <input type="number" id="editPlayerLosses" disabled>
-            <button id="saveChangesBtn" class="save-button">Guardar Cambios</button>
-        </div>
-
-        <a href="index.html" class="back-link">Volver al Ranking</a>
+        <p id="loadingStatus">Cargando...</p>
+        <p id="errorStatus" style="color: red; display:none;"></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; 
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
-        // TU CONFIGURACIÓN DE FIREBASE
+        // TU CONFIGURACIÓN DE FIREBASE (Asegúrate de que sea la misma que en index.html)
         const firebaseConfig = {
             apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
             authDomain: "liga-tenis-mesa.firebaseapp.com",
@@ -136,78 +71,90 @@
             measurementId: "G-1L1JTWHVQE"
         };
 
+        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const playerId = urlParams.get('id');
-            
-            const playerNameEl = document.getElementById('playerName');
-            const playerProfileInfo = document.getElementById('playerProfileInfo');
-            const editProfileBtn = document.getElementById('editProfileBtn');
-            const editForm = document.getElementById('editForm');
-            const editPlayerName = document.getElementById('editPlayerName');
-            const saveChangesBtn = document.getElementById('saveChangesBtn');
+        // Función para obtener el parámetro ID de la URL
+        function getPlayerIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
 
-            const docRef = doc(db, "jugadores", playerId);
+        // Lógica principal de carga y visibilidad
+        async function loadProfile(user, playerId) {
+            const emailAdminSection = document.getElementById('emailAdminSection');
+            const profileDetails = document.getElementById('profileDetails');
+            const loadingStatus = document.getElementById('loadingStatus');
+            const errorStatus = document.getElementById('errorStatus');
 
-            if (playerId) {
-                const docSnap = await getDoc(docRef);
+            loadingStatus.textContent = "Cargando perfil...";
+            profileDetails.style.display = 'none';
+            errorStatus.style.display = 'none';
+            emailAdminSection.style.display = 'none';
 
-                if (docSnap.exists()) {
-                    const playerData = docSnap.data();
-                    playerNameEl.textContent = playerData.name;
-                    document.getElementById('playerPoints').textContent = playerData.points;
-                    document.getElementById('playerPlayed').textContent = playerData.played;
-                    document.getElementById('playerWins').textContent = playerData.wins;
-                    document.getElementById('playerLosses').textContent = playerData.losses;
-                    
-                    // Comprueba si el usuario está autenticado y es el dueño del perfil
-                    onAuthStateChanged(auth, (user) => {
-                        if (user && user.uid === playerId) {
-                            editProfileBtn.style.display = 'block';
-                        }
-                    });
-
-                } else {
-                    playerNameEl.textContent = "Jugador no encontrado";
-                    playerProfileInfo.innerHTML = "<p>El jugador con este ID no existe.</p>";
-                }
-            } else {
-                playerNameEl.textContent = "ID de jugador no proporcionado";
-                playerProfileInfo.innerHTML = "<p>Por favor, vuelve al ranking y selecciona un jugador.</p>";
+            if (!playerId) {
+                errorStatus.textContent = "Error: ID de jugador no especificado.";
+                errorStatus.style.display = 'block';
+                return;
             }
 
-            // Lógica para el botón de edición
-            editProfileBtn.addEventListener('click', () => {
-                editForm.style.display = 'block';
-                playerProfileInfo.style.display = 'none';
-                editProfileBtn.style.display = 'none';
-                
-                // Carga la información actual en el formulario de edición
-                editPlayerName.value = document.getElementById('playerName').textContent;
-            });
+            try {
+                // 1. Obtener el perfil del jugador que se está visualizando
+                const playerRef = doc(db, "jugadores", playerId);
+                const playerDoc = await getDoc(playerRef);
 
-            // Lógica para guardar los cambios
-            saveChangesBtn.addEventListener('click', async () => {
-                const newName = editPlayerName.value;
-                
-                if (newName === "") {
-                    alert("El nombre no puede estar vacío.");
+                if (!playerDoc.exists()) {
+                    errorStatus.textContent = "Error: Jugador no encontrado.";
+                    errorStatus.style.display = 'block';
                     return;
                 }
-
-                try {
-                    await updateDoc(docRef, {
-                        name: newName
-                    });
-                    alert("Perfil actualizado con éxito.");
-                    location.reload(); // Recarga la página para mostrar los cambios
-                } catch (e) {
-                    alert("Error al guardar los cambios: " + e.message);
+                
+                const playerData = playerDoc.data();
+                
+                // 2. Determinar si el usuario logueado es Administrador
+                let isCurrentUserAdmin = false;
+                if (user) {
+                    const currentUserRef = doc(db, "jugadores", user.uid);
+                    const currentUserDoc = await getDoc(currentUserRef);
+                    if (currentUserDoc.exists() && currentUserDoc.data().role === 'admin') {
+                        isCurrentUserAdmin = true;
+                    }
                 }
+                
+                // 3. Rellenar los detalles públicos
+                document.getElementById('playerNameTitle').textContent = `Perfil de ${playerData.name}`;
+                document.getElementById('playerName').textContent = playerData.name;
+                document.getElementById('playerPoints').textContent = playerData.points || 0;
+                document.getElementById('playerRecord').textContent = `${playerData.wins || 0}V / ${playerData.losses || 0}D`;
+
+                
+                // 4. Lógica de visibilidad del email (SOLO ADMIN)
+                if (isCurrentUserAdmin && playerData.associatedEmail) {
+                    document.getElementById('playerEmail').textContent = playerData.associatedEmail;
+                    emailAdminSection.style.display = 'block';
+                }
+
+                // Mostrar el contenido final
+                loadingStatus.style.display = 'none';
+                profileDetails.style.display = 'block';
+
+            } catch (error) {
+                console.error("Error al cargar el perfil:", error);
+                errorStatus.textContent = `Error al cargar el perfil. Revisa la consola.`;
+                errorStatus.style.display = 'block';
+                loadingStatus.style.display = 'none';
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const playerId = getPlayerIdFromUrl();
+            
+            // Esperamos el estado de autenticación para saber el rol del usuario actual
+            onAuthStateChanged(auth, (user) => {
+                loadProfile(user, playerId);
             });
         });
     </script>
