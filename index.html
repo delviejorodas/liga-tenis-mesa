@@ -65,7 +65,7 @@
         }
 
         /* Contenido y Herramientas */
-        #player-tools, #admin-tools, #advanced-content {
+        #admin-tools, #advanced-content { /* player-tools ha sido eliminado */
             padding: 15px;
             margin-top: 20px;
             border: 1px dashed #ccc;
@@ -76,10 +76,6 @@
             color: #d9534f;
         }
         
-        #player-tools h2 {
-            color: #28a745;
-        }
-
         /* --- ESTILOS DE RANKING --- */
         .ranking-table {
             width: 100%;
@@ -108,7 +104,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: nowrap; /* Evita que se rompa en PC */
+            flex-wrap: nowrap;
         }
 
         .logo span {
@@ -120,13 +116,13 @@
             list-style: none;
             margin: 0;
             padding: 0;
-            display: flex; /* Por defecto, horizontal en PC */
+            display: flex;
         }
 
         .nav-links li {
             margin-left: 20px;
             white-space: nowrap; 
-            display: flex; /* Para centrar el contenido del li */
+            display: flex;
             align-items: center;
         }
 
@@ -151,7 +147,6 @@
             font-size: 0.9em;
         }
         
-        /* Ocultar el botón de hamburguesa en PC */
         .menu-toggle {
             display: none;
             background: none;
@@ -161,14 +156,12 @@
             cursor: pointer;
         }
 
-        /* Estilo para el estado del usuario en la barra */
         #nav-user-email {
             font-weight: bold;
             color: #ffd700;
             padding-right: 10px;
         }
         
-        /* Botón Logout dentro del menú */
         #nav-link-logout button {
             background-color: #f44336;
             color: white;
@@ -184,20 +177,17 @@
                 flex-wrap: wrap; 
             }
 
-            /* Mostrar el botón de hamburguesa */
             .menu-toggle {
                 display: block;
                 order: 2;
             }
 
-            /* Ocultar los enlaces por defecto en móvil */
             .nav-links {
                 display: none;
                 width: 100%; 
                 order: 3;
             }
 
-            /* Estilo de la lista cuando está activa (abierta) */
             .nav-links.active {
                 display: block; 
                 background-color: #444; 
@@ -223,23 +213,16 @@
                 box-sizing: border-box;
             }
             
-            /* El formulario de login vuelve a ser visible en móvil si no hay sesión */
             .auth-forms {
                 display: flex !important; 
             }
             
-            /* El estado de usuario logueado en el cuerpo se oculta en móvil para usar el del menú */
             .auth-status {
                 display: none !important; 
             }
 
             .ranking-table thead {
                 display: none;
-            }
-            .ranking-table td::before {
-                /* Asegurar que la tabla sea responsive */
-                content: attr(data-label);
-                /* ... (tus estilos responsive de tabla) ... */
             }
         }
     </style>
@@ -322,12 +305,6 @@
             <p>Este es el contenido adicional visible para cualquier usuario que haya iniciado sesión.</p>
         </div>
 
-        <div id="player-tools" style="display:none;">
-            <h2>Herramientas de Jugador</h2>
-            <a href="player-profile.html" id="myProfileLink">Ver/Editar mi Perfil de Jugador</a>
-            <p>Aquí tienes acceso a tus estadísticas detalladas.</p>
-        </div>
-
         <div id="admin-tools" style="display:none;">
             <h2>Panel de Administración</h2>
             <p>Control total de la aplicación.</p>
@@ -338,7 +315,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+        // Importaciones necesarias para Firestore
         import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc, where, limit, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; 
+        // Importaciones necesarias para Auth
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
@@ -373,7 +352,7 @@
 
             // Elementos para controlar la visibilidad por rol
             const advancedContent = document.getElementById('advanced-content');
-            const playerTools = document.getElementById('player-tools');
+            // const playerTools = document.getElementById('player-tools'); // Eliminado del HTML
             const adminTools = document.getElementById('admin-tools');
             const addPlayerLink = document.getElementById('addPlayerLink'); // Enlace en el cuerpo del admin
             
@@ -400,8 +379,6 @@
                         if (!user.emailVerified) {
                             signOut(auth);
                             alert("Tu correo electrónico no ha sido verificado. Revisa tu bandeja de entrada.");
-                        } else {
-                            // Se gestiona el redireccionamiento y roles en onAuthStateChanged
                         }
                     })
                     .catch((error) => {
@@ -413,7 +390,6 @@
             const handleLogout = () => {
                 signOut(auth).then(() => {
                     alert("Sesión cerrada con éxito.");
-                    // Limpiar el modo administrador al cerrar sesión
                     localStorage.removeItem('adminViewMode');
                 }).catch((error) => {
                     alert("Error al cerrar sesión: " + error.message);
@@ -431,7 +407,6 @@
             async function handleUserRoles(user, userDocFromAuth) {
                 // --- A. Reset de Visibilidad ---
                 advancedContent.style.display = 'none';
-                playerTools.style.display = 'none';
                 adminTools.style.display = 'none';
                 
                 authForms.style.display = 'flex'; // Default (se oculta en Rol 2,3,4)
@@ -473,7 +448,7 @@
                     
                     // C. Visibilidad Común para Registrados
                     authForms.style.display = 'none'; 
-                    authStatus.style.display = 'block'; // Mostrar estado en el cuerpo (PC)
+                    authStatus.style.display = 'block'; 
                     userEmailSpan.textContent = user.email;
                     
                     advancedContent.style.display = 'block';
@@ -485,8 +460,7 @@
 
                     if (isPlayer) {
                         // --- ROL 3, 4: JUGADOR O ADMINISTRADOR ---
-                        document.getElementById('nav-link-player').style.display = 'flex';
-                        playerTools.style.display = 'block';
+                        document.getElementById('nav-link-player').style.display = 'flex'; // Mostrar "Mi Perfil" en el menú
                         
                         const role = userDoc.data().role;
                         
