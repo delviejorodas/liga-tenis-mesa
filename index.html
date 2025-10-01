@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranking de Jugadores</title>
     <style>
-        /* Estilos CSS */
+        /* --- ESTILOS GENERALES Y LAYOUT --- */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -28,6 +28,7 @@
             color: #0056b3;
         }
 
+        /* --- ESTILOS DE AUTENTICACIÓN Y ROLES EN EL CUERPO --- */
         .auth-forms {
             display: flex;
             flex-direction: column;
@@ -36,10 +37,6 @@
             padding: 20px;
             background-color: #e9ecef;
             border-radius: 8px;
-        }
-
-        .auth-forms h2 {
-            margin-top: 0;
         }
 
         .auth-forms input[type="email"], .auth-forms input[type="password"] {
@@ -58,79 +55,32 @@
             cursor: pointer;
             font-size: 16px;
         }
-
-        .auth-forms button:hover {
-            background-color: #0056b3;
-        }
-
+        
         .auth-status {
             text-align: center;
             margin-bottom: 20px;
-        }
-        
-        #admin-mode-toggle {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background-color: #fff3cd; /* Color de advertencia sutil */
-            border: 1px solid #ffeeba;
+            padding: 20px;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            margin-bottom: 15px;
-        }
-        
-        #admin-mode-toggle label {
-            font-weight: bold;
-            color: #856404;
         }
 
-        #addPlayerLink {
-            display: none; 
-            width: 250px;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            text-align: center;
-            text-decoration: none;
-        }
-        
-        #addPlayerLink:hover {
-            background-color: #218838;
-        }
-        
-        #goToRegister {
-            display: block; 
-            width: 80%; 
-            max-width: 400px; 
-            margin: 20px auto; 
-            padding: 15px 20px; 
-            background-color: #f44336; 
-            color: white; 
-            border-radius: 5px; 
-            text-align: center; 
-            text-decoration: none; 
-            font-size: 18px; 
-            font-weight: bold;
-        }
-
-        #goToRegister:hover {
-            background-color: #cc372c;
-        }
-        
-        /* Estilos para las nuevas secciones de contenido */
+        /* Contenido y Herramientas */
         #player-tools, #admin-tools, #advanced-content {
             padding: 15px;
             margin-top: 20px;
             border: 1px dashed #ccc;
             border-radius: 5px;
         }
+        
+        #admin-tools h2 {
+            color: #d9534f;
+        }
+        
+        #player-tools h2 {
+            color: #28a745;
+        }
 
+        /* --- ESTILOS DE RANKING --- */
         .ranking-table {
             width: 100%;
             border-collapse: collapse;
@@ -148,83 +98,209 @@
             color: white;
             text-transform: uppercase;
         }
+        
+        /* --- ESTILOS PARA LA BARRA DE NAVEGACIÓN Y EL MENÚ RESPONSIVE --- */
 
-        .ranking-table tbody tr:nth-child(odd) {
-            background-color: #ffffff;
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap; /* Evita que se rompa en PC */
+        }
+
+        .logo span {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .nav-links ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex; /* Por defecto, horizontal en PC */
+        }
+
+        .nav-links li {
+            margin-left: 20px;
+            white-space: nowrap; 
+            display: flex; /* Para centrar el contenido del li */
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            display: block;
+        }
+
+        .nav-links a:hover {
+            background-color: #555;
+            border-radius: 4px;
+        }
+
+        /* Switch de Admin en el menú */
+        .admin-switch-container label {
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
         }
         
-        .ranking-table tbody tr:nth-child(even) {
-            background-color: #f7f7f7;
+        /* Ocultar el botón de hamburguesa en PC */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
         }
 
-        .ranking-table tr:hover {
-            background-color: #e9e9e9;
+        /* Estilo para el estado del usuario en la barra */
+        #nav-user-email {
+            font-weight: bold;
+            color: #ffd700;
+            padding-right: 10px;
+        }
+        
+        /* Botón Logout dentro del menú */
+        #nav-link-logout button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        /* Estilos Responsive */
-        @media screen and (max-width: 600px) {
+        /* --- MEDIA QUERY PARA MÓVILES (Menú Hamburguesa) --- */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-wrap: wrap; 
+            }
+
+            /* Mostrar el botón de hamburguesa */
+            .menu-toggle {
+                display: block;
+                order: 2;
+            }
+
+            /* Ocultar los enlaces por defecto en móvil */
+            .nav-links {
+                display: none;
+                width: 100%; 
+                order: 3;
+            }
+
+            /* Estilo de la lista cuando está activa (abierta) */
+            .nav-links.active {
+                display: block; 
+                background-color: #444; 
+            }
+
+            .nav-links ul {
+                flex-direction: column;
+                padding: 10px 0;
+            }
+
+            .nav-links li {
+                margin: 0;
+                border-bottom: 1px solid #555;
+            }
+            
+            .nav-links li:last-child {
+                border-bottom: none;
+            }
+
+            .nav-links a, #nav-link-logout button, .admin-switch-container label {
+                padding: 15px 20px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            /* El formulario de login vuelve a ser visible en móvil si no hay sesión */
+            .auth-forms {
+                display: flex !important; 
+            }
+            
+            /* El estado de usuario logueado en el cuerpo se oculta en móvil para usar el del menú */
+            .auth-status {
+                display: none !important; 
+            }
+
             .ranking-table thead {
                 display: none;
             }
-
-            .ranking-table, .ranking-table tbody, .ranking-table tr, .ranking-table td {
-                display: block;
-                width: 100%;
-            }
-
-            .ranking-table tr {
-                margin-bottom: 15px;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-            }
-
             .ranking-table td::before {
+                /* Asegurar que la tabla sea responsive */
                 content: attr(data-label);
-                position: absolute;
-                left: 0;
-                width: 50%;
-                padding-left: 10px;
-                font-weight: bold;
-                text-align: left;
-                color: #007bff;
-            }
-
-            .form-row input {
-                width: 100%;
+                /* ... (tus estilos responsive de tabla) ... */
             }
         }
     </style>
 </head>
 <body>
 
+    <header class="navbar">
+        <div class="logo">
+            <span>Liga Tenis de Mesa</span>
+        </div>
+        
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+
+        <nav class="nav-links" id="navLinks">
+            <ul>
+                <li><a href="index.html">Ranking</a></li> 
+                
+                <li id="nav-link-register" style="display:none;"><a href="register.html">Registrarse</a></li>
+                
+                <li id="nav-link-player" style="display:none;"><a href="player-profile.html">Mi Perfil</a></li>
+
+                <li id="nav-link-admin" style="display:none;"><a href="add-player.html">Añadir Jugador</a></li>
+                
+                <li id="nav-link-admin-switch" style="display:none;">
+                    <div class="admin-switch-container">
+                        <label for="viewModeSwitch">
+                            <input type="checkbox" id="viewModeSwitch"> 
+                            Modo Admin
+                        </label>
+                    </div>
+                </li>
+                
+                <li id="nav-link-status" style="display:none;">
+                    <span id="nav-user-email"></span> 
+                </li>
+                
+                <li id="nav-link-logout" style="display:none;">
+                    <button id="logoutBtnNav">Cerrar Sesión</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
     <div class="container">
-        <h1>Ranking de Jugadores</h1>
+        <h1>Clasificación General</h1>
 
         <div class="auth-forms" id="auth-forms">
             <h2>Inicio de sesión</h2>
             <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
             <input type="password" id="loginPassword" placeholder="Contraseña" required>
             <button id="loginBtn">Iniciar Sesión</button>
-            <a href="reset-password.html" id="resetPasswordLink" style="background-color: #f44336; padding: 10px 20px; color: white; border-radius: 5px; text-align: center; text-decoration: none; font-size: 16px;">¿Olvidaste tu contraseña?</a>
+            <a href="reset-password.html" style="background-color: #f44336; padding: 10px 20px; color: white; border-radius: 5px; text-align: center; text-decoration: none; font-size: 16px;">¿Olvidaste tu contraseña?</a>
         </div>
         
-        <a href="register.html" id="goToRegister">Registrarse</a>
-
         <div class="auth-status" id="auth-status" style="display:none;">
             <p>Has iniciado sesión como: <span id="userEmail"></span></p>
-            
-            <div id="admin-mode-toggle" style="display:none; margin-bottom: 10px;">
-                <label for="viewModeSwitch">
-                    <input type="checkbox" id="viewModeSwitch"> 
-                    Ver en **Modo Administrador**
-                </label>
-            </div>
-
-            <button id="logoutBtn">Cerrar Sesión</button>
+            <button id="logoutBtnBody">Cerrar Sesión</button>
         </div>
 
+
         <div id="basic-content">
-            <h2>Clasificación General</h2>
             <table class="ranking-table" id="rankingTable">
                 <thead>
                     <tr>
@@ -243,27 +319,25 @@
         
         <div id="advanced-content" style="display:none;">
             <h2>Noticias y Contenido Exclusivo</h2>
-            <p>Este es el contenido adicional visible para cualquier usuario que haya iniciado sesión (Registrado No Jugador, Jugador, Admin).</p>
+            <p>Este es el contenido adicional visible para cualquier usuario que haya iniciado sesión.</p>
         </div>
 
         <div id="player-tools" style="display:none;">
-            <h2>Mi Perfil</h2>
-            <a href="player-profile.html" id="myProfileLink">Ver mi Perfil de Jugador</a>
-            <p>Solo visible para usuarios con perfil de jugador asociado.</p>
+            <h2>Herramientas de Jugador</h2>
+            <a href="player-profile.html" id="myProfileLink">Ver/Editar mi Perfil de Jugador</a>
+            <p>Aquí tienes acceso a tus estadísticas detalladas.</p>
         </div>
 
         <div id="admin-tools" style="display:none;">
             <h2>Panel de Administración</h2>
             <p>Control total de la aplicación.</p>
-            <a href="add-player.html" id="addPlayerLink">Añadir Nuevo Jugador</a>
-            <p>Solo visible para administradores.</p>
+            <a href="add-player.html" id="addPlayerLink">Gestionar Jugadores</a> 
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-        // IMPORTANTE: Se añadieron where, limit, getDocs, updateDoc
         import { getFirestore, collection, onSnapshot, orderBy, query, getDoc, doc, where, limit, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; 
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
@@ -294,19 +368,30 @@
             const loginEmail = document.getElementById('loginEmail');
             const loginPassword = document.getElementById('loginPassword');
             const loginBtn = document.getElementById('loginBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const goToRegister = document.getElementById('goToRegister'); 
-            
+            const logoutBtnBody = document.getElementById('logoutBtnBody');
+            const logoutBtnNav = document.getElementById('logoutBtnNav');
+
             // Elementos para controlar la visibilidad por rol
             const advancedContent = document.getElementById('advanced-content');
             const playerTools = document.getElementById('player-tools');
             const adminTools = document.getElementById('admin-tools');
-            const addPlayerLink = document.getElementById('addPlayerLink');
+            const addPlayerLink = document.getElementById('addPlayerLink'); // Enlace en el cuerpo del admin
+            
+            // Elementos para el menú responsive
+            const menuToggle = document.getElementById('menuToggle');
+            const navLinks = document.getElementById('navLinks');
             
             // Elementos para el modo Admin
-            const adminModeToggleDiv = document.getElementById('admin-mode-toggle');
             const viewModeSwitch = document.getElementById('viewModeSwitch');
 
+
+            // ----------------------------------------------------
+            // 1. LÓGICA DE EVENTOS (Login, Logout, Menú)
+            // ----------------------------------------------------
+            
+            menuToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+            });
 
             loginBtn.addEventListener('click', () => {
                 signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
@@ -316,7 +401,7 @@
                             signOut(auth);
                             alert("Tu correo electrónico no ha sido verificado. Revisa tu bandeja de entrada.");
                         } else {
-                            alert("Sesión iniciada con éxito. Comprobando perfil y permisos...");
+                            // Se gestiona el redireccionamiento y roles en onAuthStateChanged
                         }
                     })
                     .catch((error) => {
@@ -325,97 +410,124 @@
                     });
             });
 
-            logoutBtn.addEventListener('click', () => {
+            const handleLogout = () => {
                 signOut(auth).then(() => {
                     alert("Sesión cerrada con éxito.");
+                    // Limpiar el modo administrador al cerrar sesión
+                    localStorage.removeItem('adminViewMode');
                 }).catch((error) => {
                     alert("Error al cerrar sesión: " + error.message);
                 });
-            });
+            };
+            
+            logoutBtnBody.addEventListener('click', handleLogout);
+            logoutBtnNav.addEventListener('click', handleLogout);
 
             
-            // Función central para manejar la visibilidad según el rol y el modo
+            // ----------------------------------------------------
+            // 2. FUNCIÓN CENTRAL DE ROLES Y VISIBILIDAD
+            // ----------------------------------------------------
+
             async function handleUserRoles(user, userDocFromAuth) {
-                // Reiniciar visibilidad de contenidos avanzados
+                // --- A. Reset de Visibilidad ---
                 advancedContent.style.display = 'none';
                 playerTools.style.display = 'none';
                 adminTools.style.display = 'none';
-                adminModeToggleDiv.style.display = 'none'; // Ocultar switch por defecto
                 
+                authForms.style.display = 'flex'; // Default (se oculta en Rol 2,3,4)
+                authStatus.style.display = 'none'; // Default (se muestra en Rol 2,3,4 en PC)
+                
+                // Resets de los elementos del menú
+                document.getElementById('nav-link-register').style.display = 'none';
+                document.getElementById('nav-link-player').style.display = 'none';
+                document.getElementById('nav-link-admin').style.display = 'none';
+                document.getElementById('nav-link-status').style.display = 'none';
+                document.getElementById('nav-link-logout').style.display = 'none';
+                document.getElementById('nav-link-admin-switch').style.display = 'none';
+
+
                 let userDoc = userDocFromAuth;
                 let isPlayer = userDoc && userDoc.exists();
 
                 if (user && user.emailVerified) {
                     
                     // --- ROL 2, 3, 4: USUARIO REGISTRADO Y VERIFICADO ---
-
-                    // =========================================================================
-                    // ETAPA 1: Búsqueda por Email Asociado (Si no tiene documento por UID)
-                    // Esta lógica es crucial para asociar perfiles creados por el administrador
-                    // =========================================================================
+                    
+                    // B. Lógica de Asociación por Email (si no hay perfil por UID)
                     if (!isPlayer) {
-                        const email = user.email.toLowerCase(); // Correo del usuario logueado
+                        const email = user.email.toLowerCase();
                         const q = query(collection(db, "jugadores"), where("associatedEmail", "==", email), limit(1));
                         const emailSnapshot = await getDocs(q);
 
                         if (!emailSnapshot.empty) {
-                            // ¡Encontrado! Este es el perfil del jugador asociado al email
                             userDoc = emailSnapshot.docs[0];
                             isPlayer = true;
                             
-                            // OPTIMIZACIÓN: Asociar el UID al perfil para permitir futuras ediciones de perfil
+                            // Asociar el UID (opcional para mantener el ID)
                             const jugadorId = userDoc.id;
                             await updateDoc(doc(db, "jugadores", jugadorId), {
-                                id: user.uid, // Guardamos el UID para referencia
-                                // Opcional: asociadoEmail: deleteField() si quieres limpiar
+                                id: user.uid,
                             });
                         }
                     }
                     
-                    advancedContent.style.display = 'block';
-                    authForms.style.display = 'none';
-                    goToRegister.style.display = 'none';
-                    authStatus.style.display = 'block';
+                    // C. Visibilidad Común para Registrados
+                    authForms.style.display = 'none'; 
+                    authStatus.style.display = 'block'; // Mostrar estado en el cuerpo (PC)
                     userEmailSpan.textContent = user.email;
-
+                    
+                    advancedContent.style.display = 'block';
+                    document.getElementById('nav-link-status').style.display = 'flex';
+                    document.getElementById('nav-link-logout').style.display = 'flex';
+                    document.getElementById('nav-user-email').textContent = user.email;
+                    
                     let isAdmin = false;
 
                     if (isPlayer) {
                         // --- ROL 3, 4: JUGADOR O ADMINISTRADOR ---
+                        document.getElementById('nav-link-player').style.display = 'flex';
+                        playerTools.style.display = 'block';
                         
                         const role = userDoc.data().role;
-                        playerTools.style.display = 'block'; // Mostrar herramientas de jugador
                         
                         if (role === 'admin') {
                             isAdmin = true;
-                            adminModeToggleDiv.style.display = 'block'; // Mostrar el switch a los administradores
+                            
+                            // Mostrar el switch en el menú
+                            document.getElementById('nav-link-admin-switch').style.display = 'flex'; 
 
-                            // Comprobar el estado actual del switch
+                            // Comprobar el estado del switch
                             if (viewModeSwitch.checked) {
                                 // MODO ADMINISTRADOR ACTIVO
                                 adminTools.style.display = 'block'; 
-                                addPlayerLink.style.display = 'block';
+                                document.getElementById('nav-link-admin').style.display = 'flex';
                             } else {
-                                // MODO USUARIO/JUGADOR (Admin viendo como jugador)
+                                // MODO USUARIO/JUGADOR
                                 adminTools.style.display = 'none';
-                                addPlayerLink.style.display = 'none';
+                                document.getElementById('nav-link-admin').style.display = 'none'; 
                             }
                         } else {
                             // ROL 3: REGISTRADO JUGADOR
-                            addPlayerLink.style.display = 'none';
+                            adminTools.style.display = 'none';
+                            document.getElementById('nav-link-admin').style.display = 'none'; 
                         }
                     } else {
                         // ROL 2: REGISTRADO NO JUGADOR
-                        // Solo ve el contenido avanzado
                     }
+
                 } else {
                     // --- ROL 1: NO REGISTRADO ---
-                    authForms.style.display = 'flex';
-                    authStatus.style.display = 'none';
-                    goToRegister.style.display = 'block';
+                    document.getElementById('nav-link-register').style.display = 'flex';
                 }
+                
+                // Cerrar menú hamburguesa después de la carga si está abierto
+                navLinks.classList.remove('active');
             }
 
+
+            // ----------------------------------------------------
+            // 3. LISTENERS FIREBASE Y MODO ADMIN
+            // ----------------------------------------------------
 
             onAuthStateChanged(auth, async (user) => {
                 if (user && user.emailVerified) {
@@ -424,53 +536,45 @@
 
                     // Inicializar el modo de visualización solo para administradores
                     if (userDoc.exists() && userDoc.data().role === 'admin') {
-                         // Leer el valor guardado. Si no existe, usamos 'false' como predeterminado (Modo Usuario)
                         const savedMode = localStorage.getItem('adminViewMode');
                         if (savedMode === null) {
-                            viewModeSwitch.checked = false; 
+                            viewModeSwitch.checked = false; // Por defecto: Modo Usuario
                             localStorage.setItem('adminViewMode', 'false');
                         } else {
                             viewModeSwitch.checked = (savedMode === 'true');
                         }
                     } else {
-                        // Asegurarse de que no hay un modo de administración guardado para no-admins
                         localStorage.removeItem('adminViewMode');
                     }
 
                     handleUserRoles(user, userDoc);
 
                 } else {
-                    // ROL 1: NO REGISTRADO
                     handleUserRoles(user, null);
                 }
             });
 
 
-            // --- EVENT LISTENER para el SWITCH ---
             viewModeSwitch.addEventListener('change', () => {
-                // 1. Guardar la elección del usuario en la memoria local
                 localStorage.setItem('adminViewMode', viewModeSwitch.checked);
 
-                // 2. Recargar la lógica de roles (usando la función que creamos)
                 const user = auth.currentUser;
                 if (user) {
                     const userDocRef = doc(db, "jugadores", user.uid);
                     getDoc(userDocRef).then(userDoc => {
-                        // No necesitamos el await aquí, ya que getDoc devuelve la promesa resuelta
                         handleUserRoles(user, userDoc); 
                     });
                 }
             });
             
-            // Lógica de carga del Ranking
+            // ----------------------------------------------------
+            // 4. LÓGICA DE CARGA DEL RANKING
+            // ----------------------------------------------------
             onSnapshot(query(collection(db, "jugadores"), orderBy("points", "desc")), (snapshot) => {
-                const players = [];
                 let position = 1;
                 tableBody.innerHTML = '';
                 snapshot.forEach((doc) => {
                     const player = doc.data();
-                    // Usamos el ID del documento, que ahora puede ser el UID del usuario (para admins antiguos)
-                    // o un ID automático (para jugadores nuevos).
                     const docId = doc.id; 
                     
                     const row = document.createElement('tr');
