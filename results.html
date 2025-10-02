@@ -5,31 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultados de Partidos</title>
     <style>
-        /* Reutiliza tus estilos de index.html (incluyendo navbar fijo) */
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f4f4f4; 
-            color: #333; 
-            /* === AJUSTE PARA COMPENSAR LA ALTURA DEL MENÚ FIJO (60px) === */
-            padding-top: 60px;
-        }
-        
-        .container { 
-            max-width: 900px; 
-            margin: 20px auto; 
-            padding: 20px; 
-            background-color: #fff; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-        }
-        
-        h1 { 
-            text-align: center; 
-            color: #0056b3; 
-        }
-        
+        /* --- ESTILOS DE NAVEGACIÓN (HEADER) --- */
         .navbar {
             background-color: #333;
             color: white;
@@ -38,36 +14,145 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: nowrap;
-            /* === MODIFICACIÓN PARA FIJAR EL MENÚ === */
-            position: fixed;
+            position: fixed; /* MENÚ FIJO */
             top: 0;
             width: 100%;
             z-index: 1000;
+            height: 40px; /* Altura fija para el cálculo del padding */
+            box-sizing: border-box;
         }
         
-        /* Asegúrate de incluir el resto de estilos de navegación y responsive de index.html */
+        .logo span {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
         
+        .nav-links ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .nav-links li {
+            margin-left: 20px;
+            white-space: nowrap; 
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            display: block;
+        }
+
+        .nav-links a:hover {
+            background-color: #555;
+            border-radius: 4px;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+            .nav-links {
+                /* Se oculta por defecto en móvil */
+                display: none; 
+                width: 100%; 
+                position: absolute; 
+                top: 40px; 
+                left: 0;
+            }
+            .nav-links.active {
+                /* Se muestra al hacer click */
+                display: block; 
+                background-color: #444; 
+            }
+            .nav-links ul {
+                flex-direction: column;
+                padding: 10px 0;
+            }
+            .nav-links li {
+                margin: 5px 20px;
+            }
+        }
+        /* --- FIN ESTILOS DE NAVEGACIÓN --- */
+        
+        /* --- ESTILOS GENERALES Y LAYOUT --- */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            /* COMPENSA LA ALTURA DEL MENÚ FIJO */
+            padding-top: 60px; 
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+
+        /* Tabla de Resultados */
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            text-align: center;
         }
 
         .results-table th, .results-table td {
             padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+            border: 1px solid #ddd;
         }
 
         .results-table th {
             background-color: #007bff;
             color: white;
             text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .results-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .results-table tr:hover {
+            background-color: #ddd;
+        }
+        
+        /* Estilos para el estado de carga */
+        .loading-message {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            color: #555;
         }
     </style>
 </head>
 <body>
-    
+
     <header class="navbar">
         <div class="logo">
             <span>Liga Tenis de Mesa</span>
@@ -77,54 +162,23 @@
 
         <nav class="nav-links" id="navLinks">
             <ul>
-                <li><a href="index.html">Ranking</a></li> 
+                <li><a href="index.html">Ranking / Login</a></li> 
                 <li><a href="results.html">Resultados</a></li> 
-                <li id="nav-link-register" style="display:none;"><a href="register.html">Registrarse</a></li>
-                <li id="nav-link-player" style="display:none;"><a href="player-profile.html">Mi Perfil</a></li>
-                <li id="nav-link-admin" style="display:none;"><a href="add-player.html">Añadir Jugador</a></li>
-                <li id="nav-link-admin-switch" style="display:none;">
-                    <div class="admin-switch-container">
-                        <label for="viewModeSwitch">
-                            <input type="checkbox" id="viewModeSwitch"> 
-                            Modo Admin
-                        </label>
-                    </div>
-                </li>
-                <li id="nav-link-status" style="display:none;">
-                    <span id="nav-user-email"></span> 
-                </li>
-                <li id="nav-link-logout" style="display:none;">
-                    <button id="logoutBtnNav">Cerrar Sesión</button>
-                </li>
+                <li><a href="register.html">Registrarse</a></li>
             </ul>
         </nav>
     </header>
     <div class="container">
         <h1>Resultados de Partidos Jugados</h1>
-        
-        <table class="results-table" id="resultsTable">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Local</th>
-                    <th>Resultado</th>
-                    <th>Visitante</th>
-                    <th>Ganador</th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
-        </table>
+
+        <div id="resultsContent">
+            <div class="loading-message">Cargando resultados...</div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        
-        // *********************************************************************************
-        // IMPORTANTE: DEBES COPIAR AQUÍ TODA LA LÓGICA DE FIREBASE, AUTH, LOGIN, LOGOUT
-        // Y FUNCIÓN handleUserRoles DE index.html para que la navegación funcione.
-        // *********************************************************************************
+        import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -139,38 +193,80 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const matchesCollection = collection(db, "partidos");
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // (Aquí debe ir la inicialización del MenuToggle)
-            
-            const tableBody = document.querySelector('#resultsTable tbody');
+        // Función para cargar los resultados y construir la tabla
+        async function loadResults() {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = '<div class="loading-message">Cargando resultados...</div>';
 
-            // Escuchar cambios en la colección 'partidos' ordenados por fecha descendente
-            onSnapshot(query(collection(db, "partidos"), orderBy("date", "desc")), (snapshot) => {
-                tableBody.innerHTML = ''; // Limpiar la tabla
-                snapshot.forEach((doc) => {
-                    const match = doc.data();
-                    
-                    const date = match.date.toDate().toLocaleDateString('es-ES'); // Formatear la fecha
-                    
-                    let winnerName = match.player1Score > match.player2Score ? match.player1Name : match.player2Name;
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${date}</td>
-                        <td>${match.player1Name}</td>
-                        <td>${match.player1Score} - ${match.player2Score}</td>
-                        <td>${match.player2Name}</td>
-                        <td>${winnerName}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            });
-            
-            // *********************************************************************************
-            // (Aquí debe ir la llamada a onAuthStateChanged y la función handleUserRoles)
-            // *********************************************************************************
+            try {
+                // Consulta: Partidos ordenados por fecha, del más reciente al más antiguo
+                const q = query(matchesCollection, orderBy("date", "desc"));
+                const snapshot = await getDocs(q);
+
+                let tableHTML = `
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Local</th>
+                                <th>Resultado</th>
+                                <th>Visitante</th>
+                                <th>Ganador</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                if (snapshot.empty) {
+                    tableHTML += `<tr><td colspan="5">No hay partidos registrados aún.</td></tr>`;
+                } else {
+                    snapshot.forEach((doc) => {
+                        const match = doc.data();
+                        
+                        // Formatear la fecha
+                        const dateObj = match.date.toDate(); // Convierte el Timestamp de Firestore a Date
+                        const formattedDate = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                        // Resaltar la puntuación del ganador
+                        let scoreDisplay;
+                        if (match.player1Score > match.player2Score) {
+                            scoreDisplay = `<span style="font-weight: bold;">${match.player1Score}</span> - ${match.player2Score}`;
+                        } else {
+                            scoreDisplay = `${match.player1Score} - <span style="font-weight: bold;">${match.player2Score}</span>`;
+                        }
+
+                        tableHTML += `
+                            <tr>
+                                <td>${formattedDate}</td>
+                                <td>${match.player1Name}</td>
+                                <td>${scoreDisplay}</td>
+                                <td>${match.player2Name}</td>
+                                <td style="font-weight: bold; color: #28a745;">${match.winner}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                tableHTML += `</tbody></table>`;
+                resultsContent.innerHTML = tableHTML;
+
+            } catch (error) {
+                console.error("Error al cargar los resultados:", error);
+                resultsContent.innerHTML = '<div class="loading-message" style="color: red;">Error al cargar resultados. Por favor, revisa la consola.</div>';
+            }
+        }
+        
+        // Lógica del menú responsive
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
         });
+
+        document.addEventListener('DOMContentLoaded', loadResults);
     </script>
 </body>
 </html>
