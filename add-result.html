@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Introducir Resultado de Partido</title>
     <style>
+        /* --- ESTILOS GENERALES Y LAYOUT --- */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
             color: #333;
+            /* === MODIFICACIÓN CLAVE: COMPENSA LA ALTURA DEL MENÚ FIJO (60px) === */
+            padding-top: 60px; 
         }
 
         .container {
@@ -27,6 +30,106 @@
             color: #d9534f;
         }
 
+        /* --- ESTILOS DE NAVEGACIÓN (Copiar de index.html) --- */
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap;
+            /* === MODIFICACIÓN CLAVE: MANTIENE EL MENÚ FIJO === */
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .logo span {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .nav-links ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .nav-links li {
+            margin-left: 20px;
+            white-space: nowrap; 
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            display: block;
+        }
+
+        .nav-links a:hover {
+            background-color: #555;
+            border-radius: 4px;
+        }
+
+        .admin-switch-container label {
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
+        }
+
+        #nav-user-email {
+            font-weight: bold;
+            color: #ffd700;
+            padding-right: 10px;
+        }
+        
+        #nav-link-logout button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                width: 100%; 
+                position: absolute; 
+                top: 50px; 
+            }
+            .nav-links.active {
+                display: block; 
+                background-color: #444; 
+            }
+            .nav-links ul {
+                flex-direction: column;
+            }
+        }
+        /* --- FIN ESTILOS DE NAVEGACIÓN --- */
+        
+        /* --- ESTILOS DE FORMULARIO ORIGINALES --- */
         .form-group {
             margin-bottom: 15px;
         }
@@ -66,7 +169,7 @@
             text-align: center;
         }
 
-        button {
+        button[type="submit"] {
             width: 100%;
             padding: 10px;
             background-color: #d9534f;
@@ -77,13 +180,45 @@
             font-size: 16px;
         }
 
-        button:hover {
+        button[type="submit"]:hover {
             background-color: #c9302c;
         }
     </style>
 </head>
 <body>
 
+    <header class="navbar">
+        <div class="logo">
+            <span>Liga Tenis de Mesa</span>
+        </div>
+        
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+
+        <nav class="nav-links" id="navLinks">
+            <ul>
+                <li><a href="index.html">Ranking</a></li> 
+                <li><a href="results.html">Resultados</a></li> 
+                <li id="nav-link-register" style="display:none;"><a href="register.html">Registrarse</a></li>
+                <li id="nav-link-player" style="display:none;"><a href="player-profile.html">Mi Perfil</a></li>
+                <li id="nav-link-admin" style="display:none;"><a href="add-player.html">Añadir Jugador</a></li>
+                
+                <li id="nav-link-admin-switch" style="display:none;">
+                    <div class="admin-switch-container">
+                        <label for="viewModeSwitch">
+                            <input type="checkbox" id="viewModeSwitch"> 
+                            Modo Admin
+                        </label>
+                    </div>
+                </li>
+                <li id="nav-link-status" style="display:none;">
+                    <span id="nav-user-email"></span> 
+                </li>
+                <li id="nav-link-logout" style="display:none;">
+                    <button id="logoutBtnNav">Cerrar Sesión</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
     <div class="container">
         <h1>Registrar Resultado de Partido</h1>
 
@@ -128,11 +263,11 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, runTransaction } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        // NO OLVIDAR AÑADIR LA LÓGICA DE PROTECCIÓN DE ROL DE ADMINISTRADOR AQUÍ
-        // Para simplificar, la omitimos en este snippet, pero es VITAL.
-        
-        // TU CONFIGURACIÓN DE FIREBASE
+        import { getFirestore, collection, addDoc, getDocs, doc, runTransaction, updateDoc, query, where, limit, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+
+        // TU CONFIGURACIÓN DE FIREBASE (Copiar de index.html)
         const firebaseConfig = {
             apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
             authDomain: "liga-tenis-mesa.firebaseapp.com",
@@ -145,8 +280,159 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
         const playersCollection = collection(db, "jugadores");
         const matchesCollection = collection(db, "partidos");
+
+        // Elementos de la barra de navegación para JS
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        const logoutBtnNav = document.getElementById('logoutBtnNav');
+        const viewModeSwitch = document.getElementById('viewModeSwitch');
+
+
+        // ----------------------------------------------------
+        // LÓGICA DE MENÚ Y AUTENTICACIÓN (COPIADA DE index.html)
+        // ----------------------------------------------------
+        
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        const handleLogout = () => {
+            signOut(auth).then(() => {
+                alert("Sesión cerrada con éxito.");
+                localStorage.removeItem('adminViewMode');
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                alert("Error al cerrar sesión: " + error.message);
+            });
+        };
+        
+        logoutBtnNav.addEventListener('click', handleLogout);
+
+        async function handleUserRoles(user, userDocFromAuth) {
+            // Elementos del menú a controlar
+            const navLinkRegister = document.getElementById('nav-link-register');
+            const navLinkPlayer = document.getElementById('nav-link-player');
+            const navLinkAdmin = document.getElementById('nav-link-admin');
+            const navLinkStatus = document.getElementById('nav-link-status');
+            const navLinkLogout = document.getElementById('nav-link-logout');
+            const navLinkAdminSwitch = document.getElementById('nav-link-admin-switch');
+            const navUserEmail = document.getElementById('nav-user-email');
+            
+            // Redirección si no es Admin
+            let isUserAllowed = false;
+
+            // --- A. Reset de Visibilidad ---
+            navLinkRegister.style.display = 'none';
+            navLinkPlayer.style.display = 'none';
+            navLinkAdmin.style.display = 'none';
+            navLinkStatus.style.display = 'none';
+            navLinkLogout.style.display = 'none';
+            navLinkAdminSwitch.style.display = 'none';
+
+            let userDoc = userDocFromAuth;
+            let isPlayer = userDoc && userDoc.exists();
+
+            if (user && user.emailVerified) {
+                // Lógica de Asociación por Email (si no hay perfil por UID)
+                if (!isPlayer) {
+                    const email = user.email.toLowerCase();
+                    const q = query(collection(db, "jugadores"), where("associatedEmail", "==", email), limit(1));
+                    const emailSnapshot = await getDocs(q);
+
+                    if (!emailSnapshot.empty) {
+                        userDoc = emailSnapshot.docs[0];
+                        isPlayer = true;
+                        
+                        // Opcional: Asociar el UID al perfil encontrado
+                        // await updateDoc(doc(db, "jugadores", userDoc.id), { id: user.uid });
+                    }
+                }
+                
+                // C. Visibilidad Común para Registrados
+                navLinkStatus.style.display = 'flex';
+                navLinkLogout.style.display = 'flex';
+                navUserEmail.textContent = user.email;
+                
+                if (isPlayer) {
+                    navLinkPlayer.style.display = 'flex';
+                    const role = userDoc.data().role;
+                    
+                    if (role === 'admin') {
+                        isUserAllowed = true;
+                        
+                        // Mostrar el switch
+                        navLinkAdminSwitch.style.display = 'flex'; 
+
+                        // Comprobar el estado del switch para mostrar Admin links
+                        if (viewModeSwitch.checked) {
+                             navLinkAdmin.style.display = 'flex';
+                        }
+                    } else {
+                        // Rol Jugador/User, no tiene acceso a esta página
+                        isUserAllowed = false; 
+                    }
+                }
+
+            } else {
+                // --- ROL 1: NO REGISTRADO ---
+                navLinkRegister.style.display = 'flex';
+            }
+            
+            // Cerrar menú hamburguesa después de la carga si está abierto
+            navLinks.classList.remove('active');
+
+            // Protección de página: Redirigir si no es admin
+            if (!isUserAllowed) {
+                alert("Acceso denegado. Se requiere ser administrador para registrar resultados.");
+                window.location.href = 'index.html';
+            }
+        }
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user && user.emailVerified) {
+                const userDocRef = doc(db, "jugadores", user.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                // Inicializar el modo de visualización solo para administradores
+                if (userDoc.exists() && userDoc.data().role === 'admin') {
+                    const savedMode = localStorage.getItem('adminViewMode');
+                    if (savedMode === null) {
+                        viewModeSwitch.checked = false; // Por defecto: Modo Usuario
+                        localStorage.setItem('adminViewMode', 'false');
+                    } else {
+                        viewModeSwitch.checked = (savedMode === 'true');
+                    }
+                } else {
+                    localStorage.removeItem('adminViewMode');
+                }
+
+                handleUserRoles(user, userDoc);
+
+            } else {
+                // Si no hay usuario logueado, redirigir inmediatamente
+                handleUserRoles(user, null);
+            }
+        });
+
+
+        viewModeSwitch.addEventListener('change', () => {
+            localStorage.setItem('adminViewMode', viewModeSwitch.checked);
+
+            const user = auth.currentUser;
+            if (user) {
+                const userDocRef = doc(db, "jugadores", user.uid);
+                getDoc(userDocRef).then(userDoc => {
+                    handleUserRoles(user, userDoc); 
+                });
+            }
+        });
+        
+        // ----------------------------------------------------
+        // LÓGICA ORIGINAL DE add-result.html
+        // ----------------------------------------------------
 
         // Función para establecer la fecha actual por defecto
         function setTodayDate() {
@@ -213,7 +499,7 @@
         // Lógica para guardar resultado y actualizar ranking
         document.getElementById('addResultForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
+            // ... (Resto de la lógica del submit) ...
             const player1Id = document.getElementById('player1').value;
             const player2Id = document.getElementById('player2').value;
             const player1Name = document.getElementById('player1').options[document.getElementById('player1').selectedIndex].text;
@@ -265,19 +551,18 @@
                 });
 
                 // 2. Actualizar el ranking de los jugadores usando una transacción
-                // Esto asegura que ambos perfiles se actualicen atómicamente.
                 await runTransaction(db, async (transaction) => {
                     
                     // a) Obtener referencias y datos del ganador
                     const winnerRef = doc(db, "jugadores", winnerId);
                     const winnerDoc = await transaction.get(winnerRef);
-                    if (!winnerDoc.exists()) { throw "¡Ganador no encontrado!"; }
+                    if (!winnerDoc.exists()) { throw "¡Ganador no encontrado!"; } // Este es el error potencial que revisamos.
                     const winnerData = winnerDoc.data();
 
                     // b) Obtener referencias y datos del perdedor
                     const loserRef = doc(db, "jugadores", loserId);
                     const loserDoc = await transaction.get(loserRef);
-                    if (!loserDoc.exists()) { throw "¡Perdedor no encontrado!"; }
+                    if (!loserDoc.exists()) { throw "¡Perdedor no encontrado!"; } // Este es el error potencial que revisamos.
                     const loserData = loserDoc.data();
                     
                     // c) Actualizar Ganador (3 puntos, 1 jugado, 1 victoria)

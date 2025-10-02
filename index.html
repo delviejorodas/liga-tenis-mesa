@@ -12,6 +12,8 @@
             padding: 0;
             background-color: #f4f4f4;
             color: #333;
+            /* === AJUSTE PARA COMPENSAR LA ALTURA DEL MENÚ FIJO (60px) === */
+            padding-top: 60px; 
         }
 
         .container {
@@ -105,6 +107,11 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: nowrap;
+            /* === MODIFICACIÓN PARA FIJAR EL MENÚ === */
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
         }
 
         .logo span {
@@ -175,6 +182,7 @@
         @media (max-width: 768px) {
             .navbar {
                 flex-wrap: wrap; 
+                /* Se necesita altura explícita o ajustes si el menú se expande */
             }
 
             .menu-toggle {
@@ -186,6 +194,8 @@
                 display: none;
                 width: 100%; 
                 order: 3;
+                position: absolute; /* Para que el menú desplegable no afecte al contenido */
+                top: 50px; /* Debajo de la barra fija */
             }
 
             .nav-links.active {

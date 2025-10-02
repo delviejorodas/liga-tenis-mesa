@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Nuevo Jugador</title>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
     <style>
+        /* --- ESTILOS GENERALES Y LAYOUT --- */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
             color: #333;
+            /* === MODIFICACIÓN CLAVE: COMPENSA LA ALTURA DEL MENÚ FIJO (60px) === */
+            padding-top: 60px;
         }
 
         .container {
@@ -26,7 +30,89 @@
             text-align: center;
             color: #0056b3;
         }
+        
+        /* --- ESTILOS DE NAVEGACIÓN (NUEVOS - Copiar de index.html) --- */
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap;
+            /* === MANTIENE EL MENÚ FIJO === */
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .logo span {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .nav-links ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
 
+        .nav-links li {
+            margin-left: 20px;
+            white-space: nowrap; 
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            display: block;
+        }
+
+        .nav-links a:hover {
+            background-color: #555;
+            border-radius: 4px;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                width: 100%; 
+                position: absolute; 
+                top: 50px; 
+            }
+            .nav-links.active {
+                display: block; 
+                background-color: #444; 
+            }
+            .nav-links ul {
+                flex-direction: column;
+                padding: 10px 0;
+            }
+            .nav-links li {
+                margin: 5px 20px;
+            }
+        }
+        /* --- FIN ESTILOS DE NAVEGACIÓN --- */
+
+
+        /* --- ESTILOS DE FORMULARIO ORIGINALES --- */
         .register-form {
             display: flex;
             flex-direction: column;
@@ -38,41 +124,35 @@
         }
 
         .register-form input[type="email"], .register-form input[type="password"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
+            padding: 10px;
+            border: 1px solid #ced4da;
             border-radius: 4px;
         }
         
-        /* Estilos para la validación de contraseña */
         .password-validation {
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #555;
             margin-top: -10px;
-            margin-bottom: 10px;
+            text-align: left;
         }
-
-        .password-validation ul {
-            padding: 0;
-            margin: 0;
-        }
-
-        .password-validation li {
+        
+        .validation-item {
             list-style: none;
-            padding: 2px 0;
+            margin: 5px 0;
+            padding-left: 0;
         }
 
-        .valid {
+        .validation-item.valid {
             color: green;
         }
 
-        .invalid {
+        .validation-item.invalid {
             color: red;
         }
 
-        .register-form button {
-            padding: 10px 20px;
-            background-color: #28a745;
+        .register-button {
+            padding: 10px;
+            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
@@ -80,53 +160,69 @@
             font-size: 16px;
         }
 
-        .register-form button:hover {
-            background-color: #218838;
+        .register-button:hover {
+            background-color: #0056b3;
         }
-        
-        .back-link {
-            display: block;
-            margin-top: 20px;
+
+        p {
             text-align: center;
-            font-size: 1.1em;
+            margin-top: 15px;
+        }
+
+        p a {
             color: #007bff;
             text-decoration: none;
         }
 
-        .back-link:hover {
+        p a:hover {
             text-decoration: underline;
         }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?render=6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ"></script>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Registro de Jugadores</h1>
+    <header class="navbar">
+        <div class="logo">
+            <span>Liga Tenis de Mesa</span>
+        </div>
+        
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
 
-        <div class="register-form">
-            <input type="email" id="registerEmail" placeholder="Correo electrónico" required>
-            <input type="password" id="registerPassword" placeholder="Contraseña" required>
+        <nav class="nav-links" id="navLinks">
+            <ul>
+                <li><a href="index.html">Ranking</a></li> 
+                <li><a href="results.html">Resultados</a></li> 
+                <li><a href="register.html">Registrarse</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="container">
+        <h1>Únete a la Liga</h1>
+        
+        <form id="registerForm" class="register-form">
+            <input type="email" id="emailInput" placeholder="Correo Electrónico" required>
+            <input type="password" id="passwordInput" placeholder="Contraseña" required>
             
-            <div id="passwordValidationList" class="password-validation">
+            <div class="password-validation">
+                <p>La contraseña debe contener:</p>
                 <ul>
-                    <li id="min-length" class="invalid">Mínimo 8 caracteres</li>
-                    <li id="upper-case" class="invalid">Una mayúscula</li>
-                    <li id="lower-case" class="invalid">Una minúscula</li>
-                    <li id="number" class="invalid">Un número</li>
-                    <li id="special-char" class="invalid">Un carácter especial</li>
+                    <li id="valLength" class="validation-item invalid">Al menos 8 caracteres</li>
+                    <li id="valUpper" class="validation-item invalid">Una mayúscula (A-Z)</li>
+                    <li id="valLower" class="validation-item invalid">Una minúscula (a-z)</li>
+                    <li id="valNumber" class="validation-item invalid">Un número (0-9)</li>
+                    <li id="valSpecial" class="validation-item invalid">Un carácter especial (!@#$...)</li>
                 </ul>
             </div>
             
-            <button id="registerBtn">Registrar Cuenta</button>
-        </div>
-
-        <a href="index.html" class="back-link">Volver al Inicio de Sesión</a>
+            <button type="submit" class="register-button">Registrarme</button>
+        </form>
+        
+        <p>¿Ya tienes cuenta? <a href="index.html">Inicia Sesión aquí</a></p>
+        <p><a href="reset-password.html">¿Olvidaste tu contraseña?</a></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        // Ya no necesitamos setDoc ni getFirestore
         import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
         // TU CONFIGURACIÓN DE FIREBASE
@@ -142,75 +238,81 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-
-        auth.languageCode = 'es';
         
-        document.addEventListener('DOMContentLoaded', () => {
-            const registerEmail = document.getElementById('registerEmail');
-            const registerPassword = document.getElementById('registerPassword');
-            const registerBtn = document.getElementById('registerBtn');
+        // Lógica del menú responsive
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+        
+        // Lógica de validación de contraseña
+        const passwordInput = document.getElementById('passwordInput');
+        const valLength = document.getElementById('valLength');
+        const valUpper = document.getElementById('valUpper');
+        const valLower = document.getElementById('valLower');
+        const valNumber = document.getElementById('valNumber');
+        const valSpecial = document.getElementById('valSpecial');
+
+        function validatePassword(password) {
+            const checks = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]+/.test(password)
+            };
             
-            // Elementos de validación de contraseña
-            const minLengthEl = document.getElementById('min-length');
-            const upperCaseEl = document.getElementById('upper-case');
-            const lowerCaseEl = document.getElementById('lower-case');
-            const numberEl = document.getElementById('number');
-            const specialCharEl = document.getElementById('special-char');
+            // Función para actualizar el estado visual
+            const updateValidationItem = (element, isValid) => {
+                element.classList.remove(isValid ? 'invalid' : 'valid');
+                element.classList.add(isValid ? 'valid' : 'invalid');
+            };
 
-            // Lógica de validación de contraseña en tiempo real
-            registerPassword.addEventListener('keyup', () => {
-                const password = registerPassword.value;
-                const hasNumber = /[0-9]/.test(password);
-                const hasLowerCase = /[a-z]/.test(password);
-                const hasUpperCase = /[A-Z]/.test(password);
-                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
-                const minLength = password.length >= 8;
+            updateValidationItem(valLength, checks.length);
+            updateValidationItem(valUpper, checks.upper);
+            updateValidationItem(valLower, checks.lower);
+            updateValidationItem(valNumber, checks.number);
+            updateValidationItem(valSpecial, checks.special);
 
-                minLengthEl.className = minLength ? 'valid' : 'invalid';
-                upperCaseEl.className = hasUpperCase ? 'valid' : 'invalid';
-                lowerCaseEl.className = hasLowerCase ? 'valid' : 'invalid';
-                numberEl.className = hasNumber ? 'valid' : 'invalid';
-                specialCharEl.className = hasSpecialChar ? 'valid' : 'invalid';
-            });
+            return checks.length && checks.upper && checks.lower && checks.number && checks.special;
+        }
 
-            // Lógica de Registro
-            registerBtn.addEventListener('click', async (event) => {
-                event.preventDefault(); 
+        passwordInput.addEventListener('input', (e) => {
+            validatePassword(e.target.value);
+        });
 
-                const password = registerPassword.value;
-                const email = registerEmail.value;
+        // Lógica de registro
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('emailInput').value;
+            const password = passwordInput.value;
+            
+            if (!validatePassword(password)) {
+                alert("La contraseña no cumple con todos los requisitos.");
+                return;
+            }
 
-                // Validación de contraseña (completa)
-                const hasNumber = /[0-9]/.test(password);
-                const hasLowerCase = /[a-z]/.test(password);
-                const hasUpperCase = /[A-Z]/.test(password);
-                const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
-                const minLength = password.length >= 8;
+            try {
+                // Genera el token de reCAPTCHA
+                const token = await grecaptcha.execute('6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ', {action: 'submit'});
                 
-                if (!hasNumber || !hasLowerCase || !hasUpperCase || !hasSpecialChar || !minLength) {
-                    alert("La contraseña no cumple con todos los requisitos.");
-                    return;
-                }
-
-                try {
-                    // Genera el token de reCAPTCHA
-                    const token = await grecaptcha.execute('6LdFVM8rAAAAAIEHZV4vlOv29LR6vysK98P-SLFQ', {action: 'submit'});
-                    
-                    // 1. Crea la cuenta de usuario en Firebase Auth
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-                    
-                    // 2. Envía el email de verificación
-                    await sendEmailVerification(user);
-                    
-                    alert("¡Registro exitoso! Revisa tu correo electrónico para verificar tu cuenta y luego inicia sesión.");
-                    window.location.href = 'index.html'; // Redirige al inicio de sesión
-                    
-                } catch (error) {
-                    const errorMessage = error.message;
-                    alert("Error al registrar: " + errorMessage);
-                }
-            });
+                // 1. Crea la cuenta de usuario en Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // 2. Envía el email de verificación
+                await sendEmailVerification(user);
+                
+                alert("¡Registro exitoso! Revisa tu correo electrónico para verificar tu cuenta y luego inicia sesión.");
+                window.location.href = 'index.html'; // Redirige al inicio
+                
+            } catch (error) {
+                const errorMessage = error.message;
+                alert("Error al registrar: " + errorMessage);
+            }
         });
     </script>
 </body>

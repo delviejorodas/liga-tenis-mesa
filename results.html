@@ -5,10 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultados de Partidos</title>
     <style>
-        /* Puedes reutilizar aquí los estilos de la tabla de ranking */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h1 { text-align: center; color: #0056b3; }
+        /* Reutiliza tus estilos de index.html (incluyendo navbar fijo) */
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f4f4f4; 
+            color: #333; 
+            /* === AJUSTE PARA COMPENSAR LA ALTURA DEL MENÚ FIJO (60px) === */
+            padding-top: 60px;
+        }
+        
+        .container { 
+            max-width: 900px; 
+            margin: 20px auto; 
+            padding: 20px; 
+            background-color: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        }
+        
+        h1 { 
+            text-align: center; 
+            color: #0056b3; 
+        }
+        
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap;
+            /* === MODIFICACIÓN PARA FIJAR EL MENÚ === */
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        /* Asegúrate de incluir el resto de estilos de navegación y responsive de index.html */
         
         .results-table {
             width: 100%;
@@ -30,7 +67,38 @@
     </style>
 </head>
 <body>
+    
+    <header class="navbar">
+        <div class="logo">
+            <span>Liga Tenis de Mesa</span>
+        </div>
+        
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
 
+        <nav class="nav-links" id="navLinks">
+            <ul>
+                <li><a href="index.html">Ranking</a></li> 
+                <li><a href="results.html">Resultados</a></li> 
+                <li id="nav-link-register" style="display:none;"><a href="register.html">Registrarse</a></li>
+                <li id="nav-link-player" style="display:none;"><a href="player-profile.html">Mi Perfil</a></li>
+                <li id="nav-link-admin" style="display:none;"><a href="add-player.html">Añadir Jugador</a></li>
+                <li id="nav-link-admin-switch" style="display:none;">
+                    <div class="admin-switch-container">
+                        <label for="viewModeSwitch">
+                            <input type="checkbox" id="viewModeSwitch"> 
+                            Modo Admin
+                        </label>
+                    </div>
+                </li>
+                <li id="nav-link-status" style="display:none;">
+                    <span id="nav-user-email"></span> 
+                </li>
+                <li id="nav-link-logout" style="display:none;">
+                    <button id="logoutBtnNav">Cerrar Sesión</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
     <div class="container">
         <h1>Resultados de Partidos Jugados</h1>
         
@@ -52,6 +120,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        
+        // *********************************************************************************
+        // IMPORTANTE: DEBES COPIAR AQUÍ TODA LA LÓGICA DE FIREBASE, AUTH, LOGIN, LOGOUT
+        // Y FUNCIÓN handleUserRoles DE index.html para que la navegación funcione.
+        // *********************************************************************************
 
         // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -68,6 +141,8 @@
         const db = getFirestore(app);
 
         document.addEventListener('DOMContentLoaded', () => {
+            // (Aquí debe ir la inicialización del MenuToggle)
+            
             const tableBody = document.querySelector('#resultsTable tbody');
 
             // Escuchar cambios en la colección 'partidos' ordenados por fecha descendente
@@ -91,6 +166,10 @@
                     tableBody.appendChild(row);
                 });
             });
+            
+            // *********************************************************************************
+            // (Aquí debe ir la llamada a onAuthStateChanged y la función handleUserRoles)
+            // *********************************************************************************
         });
     </script>
 </body>

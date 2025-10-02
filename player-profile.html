@@ -5,10 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil del Jugador</title>
     <style>
-        /* Reutiliza tus estilos principales de index.html */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
-        .container { max-width: 600px; margin: 50px auto; padding: 30px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h1 { text-align: center; color: #0056b3; }
+        /* Reutiliza tus estilos principales de index.html (incluyendo navbar fijo) */
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f4f4f4; 
+            color: #333; 
+            /* === AJUSTE PARA COMPENSAR LA ALTURA DEL MENÚ FIJO (60px) === */
+            padding-top: 60px;
+        }
+        
+        .container { 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 30px; 
+            background-color: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        }
+        
+        h1 { 
+            text-align: center; 
+            color: #0056b3; 
+        }
+        
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap;
+            /* === MODIFICACIÓN PARA FIJAR EL MENÚ === */
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        /* Asegúrate de incluir el resto de estilos de navegación y responsive de index.html */
+
         .detail-row { margin-bottom: 10px; padding: 8px; border-bottom: 1px dashed #eee; }
         .detail-row strong { display: inline-block; width: 150px; }
         
@@ -23,7 +61,38 @@
     </style>
 </head>
 <body>
+    
+    <header class="navbar">
+        <div class="logo">
+            <span>Liga Tenis de Mesa</span>
+        </div>
+        
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
 
+        <nav class="nav-links" id="navLinks">
+            <ul>
+                <li><a href="index.html">Ranking</a></li> 
+                <li><a href="results.html">Resultados</a></li> 
+                <li id="nav-link-register" style="display:none;"><a href="register.html">Registrarse</a></li>
+                <li id="nav-link-player" style="display:none;"><a href="player-profile.html">Mi Perfil</a></li>
+                <li id="nav-link-admin" style="display:none;"><a href="add-player.html">Añadir Jugador</a></li>
+                <li id="nav-link-admin-switch" style="display:none;">
+                    <div class="admin-switch-container">
+                        <label for="viewModeSwitch">
+                            <input type="checkbox" id="viewModeSwitch"> 
+                            Modo Admin
+                        </label>
+                    </div>
+                </li>
+                <li id="nav-link-status" style="display:none;">
+                    <span id="nav-user-email"></span> 
+                </li>
+                <li id="nav-link-logout" style="display:none;">
+                    <button id="logoutBtnNav">Cerrar Sesión</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
     <div class="container">
         <h1 id="playerNameTitle">Cargando Perfil...</h1>
 
@@ -60,7 +129,12 @@
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; 
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
-        // TU CONFIGURACIÓN DE FIREBASE (Asegúrate de que sea la misma que en index.html)
+        // *********************************************************************************
+        // IMPORTANTE: DEBES COPIAR AQUÍ TODA LA LÓGICA DE FIREBASE, AUTH, LOGIN, LOGOUT
+        // Y FUNCIÓN handleUserRoles DE index.html para que la navegación funcione.
+        // *********************************************************************************
+        
+        // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
             authDomain: "liga-tenis-mesa.firebaseapp.com",
@@ -156,6 +230,10 @@
             onAuthStateChanged(auth, (user) => {
                 loadProfile(user, playerId);
             });
+            
+            // *********************************************************************************
+            // (Aquí debe ir la inicialización del MenuToggle)
+            // *********************************************************************************
         });
     </script>
 </body>
