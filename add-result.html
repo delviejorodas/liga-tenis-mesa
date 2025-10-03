@@ -5,32 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Introducir Resultado de Partido</title>
     <style>
-        /* --- ESTILOS GENERALES Y LAYOUT --- */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-            /* === MODIFICACIÓN CLAVE: COMPENSA LA ALTURA DEL MENÚ FIJO (60px) === */
-            padding-top: 60px; 
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 30px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            text-align: center;
-            color: #d9534f;
-        }
-
-        /* --- ESTILOS DE NAVEGACIÓN (Copiar de index.html) --- */
+        /* --- ESTILOS DE NAVEGACIÓN (HEADER) --- */
         .navbar {
             background-color: #333;
             color: white;
@@ -39,11 +14,12 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: nowrap;
-            /* === MODIFICACIÓN CLAVE: MANTIENE EL MENÚ FIJO === */
-            position: fixed;
+            position: fixed; /* MENÚ FIJO */
             top: 0;
             width: 100%;
             z-index: 1000;
+            height: 40px;
+            box-sizing: border-box;
         }
         
         .logo span {
@@ -76,14 +52,6 @@
             background-color: #555;
             border-radius: 4px;
         }
-
-        .admin-switch-container label {
-            color: #ffd700;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.9em;
-        }
         
         .menu-toggle {
             display: none;
@@ -94,21 +62,6 @@
             cursor: pointer;
         }
 
-        #nav-user-email {
-            font-weight: bold;
-            color: #ffd700;
-            padding-right: 10px;
-        }
-        
-        #nav-link-logout button {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
         @media (max-width: 768px) {
             .menu-toggle {
                 display: block;
@@ -117,7 +70,8 @@
                 display: none;
                 width: 100%; 
                 position: absolute; 
-                top: 50px; 
+                top: 40px; 
+                left: 0;
             }
             .nav-links.active {
                 display: block; 
@@ -125,11 +79,40 @@
             }
             .nav-links ul {
                 flex-direction: column;
+                padding: 10px 0;
+            }
+            .nav-links li {
+                margin: 5px 20px;
             }
         }
         /* --- FIN ESTILOS DE NAVEGACIÓN --- */
         
-        /* --- ESTILOS DE FORMULARIO ORIGINALES --- */
+        
+        /* --- ESTILOS ESPECÍFICOS DE add-result.html --- */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            /* AÑADIDO: COMPENSACIÓN PARA EL MENÚ FIJO */
+            padding-top: 60px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #d9534f;
+        }
+
         .form-group {
             margin-bottom: 15px;
         }
@@ -169,7 +152,7 @@
             text-align: center;
         }
 
-        button[type="submit"] {
+        button {
             width: 100%;
             padding: 10px;
             background-color: #d9534f;
@@ -180,13 +163,13 @@
             font-size: 16px;
         }
 
-        button[type="submit"]:hover {
+        button:hover {
             background-color: #c9302c;
         }
     </style>
 </head>
 <body>
-
+    
     <header class="navbar">
         <div class="logo">
             <span>Liga Tenis de Mesa</span>
@@ -196,30 +179,16 @@
 
         <nav class="nav-links" id="navLinks">
             <ul>
-                <li><a href="index.html">Ranking</a></li> 
+                <li><a href="index.html">Ranking / Login</a></li> 
                 <li><a href="results.html">Resultados</a></li> 
-                <li id="nav-link-register" style="display:none;"><a href="register.html">Registrarse</a></li>
-                <li id="nav-link-player" style="display:none;"><a href="player-profile.html">Mi Perfil</a></li>
-                <li id="nav-link-admin" style="display:none;"><a href="add-player.html">Añadir Jugador</a></li>
-                
-                <li id="nav-link-admin-switch" style="display:none;">
-                    <div class="admin-switch-container">
-                        <label for="viewModeSwitch">
-                            <input type="checkbox" id="viewModeSwitch"> 
-                            Modo Admin
-                        </label>
-                    </div>
-                </li>
-                <li id="nav-link-status" style="display:none;">
-                    <span id="nav-user-email"></span> 
-                </li>
-                <li id="nav-link-logout" style="display:none;">
-                    <button id="logoutBtnNav">Cerrar Sesión</button>
-                </li>
+                <li id="adminLink" style="display:none;"><a href="add-player.html">Añadir Jugador</a></li>
+                <li id="addResultLink" style="display:none;"><a href="add-result.html">Añadir Resultado</a></li>
+                <li id="profileLink" style="display:none;"><a href="player-profile.html">Mi Perfil</a></li>
+                <li id="logoutLink" style="display:none;"><a href="#" id="logoutBtn">Cerrar Sesión</a></li>
             </ul>
         </nav>
     </header>
-    <div class="container">
+    <div class="container" id="mainContent" style="display:none;">
         <h1>Registrar Resultado de Partido</h1>
 
         <form id="addResultForm">
@@ -260,14 +229,17 @@
             <button type="submit" id="submitBtn" disabled>Guardar Resultado y Actualizar Ranking</button>
         </form>
     </div>
+    
+    <div id="loading" class="container" style="text-align:center; padding-top: 20px;">
+        Cargando y verificando permisos...
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, runTransaction, updateDoc, query, where, limit, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-
-
-        // TU CONFIGURACIÓN DE FIREBASE (Copiar de index.html)
+        import { getFirestore, collection, addDoc, getDocs, doc, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        
+        // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyB7akPzbxJ1GUhYVnQNapYsAOeRMyDhNaM",
             authDomain: "liga-tenis-mesa.firebaseapp.com",
@@ -283,157 +255,29 @@
         const auth = getAuth(app);
         const playersCollection = collection(db, "jugadores");
         const matchesCollection = collection(db, "partidos");
-
-        // Elementos de la barra de navegación para JS
+        
+        // Lógica del menú responsive
         const menuToggle = document.getElementById('menuToggle');
         const navLinks = document.getElementById('navLinks');
-        const logoutBtnNav = document.getElementById('logoutBtnNav');
-        const viewModeSwitch = document.getElementById('viewModeSwitch');
-
-
-        // ----------------------------------------------------
-        // LÓGICA DE MENÚ Y AUTENTICACIÓN (COPIADA DE index.html)
-        // ----------------------------------------------------
-        
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-
-        const handleLogout = () => {
-            signOut(auth).then(() => {
-                alert("Sesión cerrada con éxito.");
-                localStorage.removeItem('adminViewMode');
-                window.location.href = 'index.html';
-            }).catch((error) => {
-                alert("Error al cerrar sesión: " + error.message);
+        if(menuToggle) {
+             menuToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
             });
-        };
-        
-        logoutBtnNav.addEventListener('click', handleLogout);
-
-        async function handleUserRoles(user, userDocFromAuth) {
-            // Elementos del menú a controlar
-            const navLinkRegister = document.getElementById('nav-link-register');
-            const navLinkPlayer = document.getElementById('nav-link-player');
-            const navLinkAdmin = document.getElementById('nav-link-admin');
-            const navLinkStatus = document.getElementById('nav-link-status');
-            const navLinkLogout = document.getElementById('nav-link-logout');
-            const navLinkAdminSwitch = document.getElementById('nav-link-admin-switch');
-            const navUserEmail = document.getElementById('nav-user-email');
-            
-            // Redirección si no es Admin
-            let isUserAllowed = false;
-
-            // --- A. Reset de Visibilidad ---
-            navLinkRegister.style.display = 'none';
-            navLinkPlayer.style.display = 'none';
-            navLinkAdmin.style.display = 'none';
-            navLinkStatus.style.display = 'none';
-            navLinkLogout.style.display = 'none';
-            navLinkAdminSwitch.style.display = 'none';
-
-            let userDoc = userDocFromAuth;
-            let isPlayer = userDoc && userDoc.exists();
-
-            if (user && user.emailVerified) {
-                // Lógica de Asociación por Email (si no hay perfil por UID)
-                if (!isPlayer) {
-                    const email = user.email.toLowerCase();
-                    const q = query(collection(db, "jugadores"), where("associatedEmail", "==", email), limit(1));
-                    const emailSnapshot = await getDocs(q);
-
-                    if (!emailSnapshot.empty) {
-                        userDoc = emailSnapshot.docs[0];
-                        isPlayer = true;
-                        
-                        // Opcional: Asociar el UID al perfil encontrado
-                        // await updateDoc(doc(db, "jugadores", userDoc.id), { id: user.uid });
-                    }
-                }
-                
-                // C. Visibilidad Común para Registrados
-                navLinkStatus.style.display = 'flex';
-                navLinkLogout.style.display = 'flex';
-                navUserEmail.textContent = user.email;
-                
-                if (isPlayer) {
-                    navLinkPlayer.style.display = 'flex';
-                    const role = userDoc.data().role;
-                    
-                    if (role === 'admin') {
-                        isUserAllowed = true;
-                        
-                        // Mostrar el switch
-                        navLinkAdminSwitch.style.display = 'flex'; 
-
-                        // Comprobar el estado del switch para mostrar Admin links
-                        if (viewModeSwitch.checked) {
-                             navLinkAdmin.style.display = 'flex';
-                        }
-                    } else {
-                        // Rol Jugador/User, no tiene acceso a esta página
-                        isUserAllowed = false; 
-                    }
-                }
-
-            } else {
-                // --- ROL 1: NO REGISTRADO ---
-                navLinkRegister.style.display = 'flex';
-            }
-            
-            // Cerrar menú hamburguesa después de la carga si está abierto
-            navLinks.classList.remove('active');
-
-            // Protección de página: Redirigir si no es admin
-            if (!isUserAllowed) {
-                alert("Acceso denegado. Se requiere ser administrador para registrar resultados.");
-                window.location.href = 'index.html';
-            }
         }
         
-        onAuthStateChanged(auth, async (user) => {
-            if (user && user.emailVerified) {
-                const userDocRef = doc(db, "jugadores", user.uid);
-                const userDoc = await getDoc(userDocRef);
-
-                // Inicializar el modo de visualización solo para administradores
-                if (userDoc.exists() && userDoc.data().role === 'admin') {
-                    const savedMode = localStorage.getItem('adminViewMode');
-                    if (savedMode === null) {
-                        viewModeSwitch.checked = false; // Por defecto: Modo Usuario
-                        localStorage.setItem('adminViewMode', 'false');
-                    } else {
-                        viewModeSwitch.checked = (savedMode === 'true');
-                    }
-                } else {
-                    localStorage.removeItem('adminViewMode');
-                }
-
-                handleUserRoles(user, userDoc);
-
-            } else {
-                // Si no hay usuario logueado, redirigir inmediatamente
-                handleUserRoles(user, null);
-            }
-        });
-
-
-        viewModeSwitch.addEventListener('change', () => {
-            localStorage.setItem('adminViewMode', viewModeSwitch.checked);
-
-            const user = auth.currentUser;
-            if (user) {
-                const userDocRef = doc(db, "jugadores", user.uid);
-                getDoc(userDocRef).then(userDoc => {
-                    handleUserRoles(user, userDoc); 
+        // Lógica de Cerrar Sesión
+        const logoutBtn = document.getElementById('logoutBtn');
+        if(logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                signOut(auth).then(() => {
+                    window.location.href = 'index.html';
+                }).catch((error) => {
+                    console.error("Error al cerrar sesión:", error);
                 });
-            }
-        });
+            });
+        }
         
-        // ----------------------------------------------------
-        // LÓGICA ORIGINAL DE add-result.html
-        // ----------------------------------------------------
-
         // Función para establecer la fecha actual por defecto
         function setTodayDate() {
             const today = new Date();
@@ -468,7 +312,7 @@
 
                 snapshot.forEach((doc) => {
                     const player = doc.data();
-                    const id = doc.id;
+                    const id = doc.id; // ¡USAMOS EL ID DEL DOCUMENTO FIRESTORE!
                     
                     const option1 = document.createElement('option');
                     option1.value = id;
@@ -490,20 +334,83 @@
             }
         }
         
-        document.addEventListener('DOMContentLoaded', () => {
-            setTodayDate();
-            loadPlayers();
+        // Lógica de Protección de Administrador y Carga
+        onAuthStateChanged(auth, async (user) => {
+            const mainContent = document.getElementById('mainContent');
+            const loading = document.getElementById('loading');
+            
+            // Actualizar enlaces de navegación
+            const adminLink = document.getElementById('adminLink');
+            const addResultLink = document.getElementById('addResultLink');
+            const profileLink = document.getElementById('profileLink');
+            const logoutLink = document.getElementById('logoutLink');
+
+            if (user) {
+                try {
+                    // Cargar el documento del jugador usando su UID de Auth como ID de documento (si es el caso)
+                    // **NOTA IMPORTANTE:** Si los documentos de "jugadores" se crean con un ID automático (como en add-player.html), 
+                    // no se podrá usar user.uid para obtener el documento.
+                    // Aquí asumimos que el rol se carga mediante un campo en el documento de jugador.
+                    // Dado que add-player.html crea con un ID automático, esta lógica de rol puede necesitar ser ajustada si el ID de Auth no es el ID del documento.
+                    // Para el propósito de esta página, **simplemente verificaremos si el usuario está autenticado.**
+                    
+                    // Si el usuario está autenticado, mostramos los enlaces de usuario
+                    profileLink.style.display = 'block';
+                    logoutLink.style.display = 'block';
+
+                    // Para esta página, requerimos verificación de rol de Admin
+                    // Buscaremos el documento del jugador por su email (asumiendo que el email está en minúsculas)
+                    const email = user.email.toLowerCase();
+                    const playersSnapshot = await getDocs(playersCollection);
+                    let isAdmin = false;
+
+                    playersSnapshot.forEach(doc => {
+                        if (doc.data().associatedEmail === email && doc.data().role === 'admin') {
+                            isAdmin = true;
+                        }
+                    });
+
+                    if (isAdmin) {
+                        // Acceso permitido para administradores
+                        adminLink.style.display = 'block';
+                        addResultLink.style.display = 'block';
+                        
+                        setTodayDate();
+                        await loadPlayers();
+                        loading.style.display = 'none';
+                        mainContent.style.display = 'block';
+                    } else {
+                        alert("Acceso denegado. Se requiere ser administrador para registrar resultados.");
+                        window.location.href = 'index.html';
+                    }
+                    
+                } catch (error) {
+                    console.error("Error al verificar rol:", error);
+                    alert("Error al verificar permisos. Redirigiendo.");
+                    window.location.href = 'index.html';
+                }
+            } else {
+                // Usuario no autenticado
+                window.location.href = 'index.html';
+            }
         });
 
 
         // Lógica para guardar resultado y actualizar ranking
         document.getElementById('addResultForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            // ... (Resto de la lógica del submit) ...
-            const player1Id = document.getElementById('player1').value;
-            const player2Id = document.getElementById('player2').value;
-            const player1Name = document.getElementById('player1').options[document.getElementById('player1').selectedIndex].text;
-            const player2Name = document.getElementById('player2').options[document.getElementById('player2').selectedIndex].text;
+
+            const player1Select = document.getElementById('player1');
+            const player2Select = document.getElementById('player2');
+            
+            // Los valores de los <option> son los IDs de documento Firestore.
+            const player1Id = player1Select.value;
+            const player2Id = player2Select.value;
+            
+            // Obtenemos los nombres de las opciones seleccionadas
+            const player1Name = player1Select.options[player1Select.selectedIndex].text;
+            const player2Name = player2Select.options[player2Select.selectedIndex].text;
+            
             const score1 = parseInt(document.getElementById('score1').value);
             const score2 = parseInt(document.getElementById('score2').value);
             const matchDate = new Date(document.getElementById('matchDate').value);
@@ -553,16 +460,18 @@
                 // 2. Actualizar el ranking de los jugadores usando una transacción
                 await runTransaction(db, async (transaction) => {
                     
-                    // a) Obtener referencias y datos del ganador
-                    const winnerRef = doc(db, "jugadores", winnerId);
+                    // a) Obtener referencias del ganador y perdedor usando el ID del documento
+                    const winnerRef = doc(db, "jugadores", winnerId); // ¡CORREGIDO: usa el ID del documento!
+                    const loserRef = doc(db, "jugadores", loserId);     // ¡CORREGIDO: usa el ID del documento!
+                    
+                    // Obtener los datos dentro de la transacción
                     const winnerDoc = await transaction.get(winnerRef);
-                    if (!winnerDoc.exists()) { throw "¡Ganador no encontrado!"; } // Este es el error potencial que revisamos.
-                    const winnerData = winnerDoc.data();
-
-                    // b) Obtener referencias y datos del perdedor
-                    const loserRef = doc(db, "jugadores", loserId);
                     const loserDoc = await transaction.get(loserRef);
-                    if (!loserDoc.exists()) { throw "¡Perdedor no encontrado!"; } // Este es el error potencial que revisamos.
+                    
+                    if (!winnerDoc.exists()) { throw "¡Ganador no encontrado!"; }
+                    if (!loserDoc.exists()) { throw "¡Perdedor no encontrado!"; }
+                    
+                    const winnerData = winnerDoc.data();
                     const loserData = loserDoc.data();
                     
                     // c) Actualizar Ganador (3 puntos, 1 jugado, 1 victoria)
@@ -583,7 +492,7 @@
 
                 alert(`Resultado registrado con éxito. Ranking actualizado: ${winnerName} gana (${winnerScore}-${loserScore}) y obtiene 3 puntos. ${loserName} obtiene 1 punto.`);
                 document.getElementById('addResultForm').reset();
-                setTodayDate(); // Vuelve a la fecha actual
+                setTodayDate(); 
 
             } catch (error) {
                 console.error("Error al registrar resultado o actualizar ranking:", error);
