@@ -14,7 +14,7 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: nowrap;
-            position: fixed; /* MENÚ FIJO */
+            position: fixed;
             top: 0;
             width: 100%;
             z-index: 1000;
@@ -95,7 +95,7 @@
             padding: 0;
             background-color: #f4f4f4;
             color: #333;
-            /* AÑADIDO: COMPENSACIÓN PARA EL MENÚ FIJO */
+            /* COMPENSACIÓN PARA EL MENÚ FIJO */
             padding-top: 60px;
         }
 
@@ -231,12 +231,12 @@
     </div>
     
     <div id="loading" class="container" style="text-align:center; padding-top: 20px;">
-        Cargando y verificando permisos...
+        Verificando permisos de administrador...
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, runTransaction } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
         
         // TU CONFIGURACIÓN DE FIREBASE
@@ -256,28 +256,6 @@
         const playersCollection = collection(db, "jugadores");
         const matchesCollection = collection(db, "partidos");
         
-        // Lógica del menú responsive
-        const menuToggle = document.getElementById('menuToggle');
-        const navLinks = document.getElementById('navLinks');
-        if(menuToggle) {
-             menuToggle.addEventListener('click', () => {
-                navLinks.classList.toggle('active');
-            });
-        }
-        
-        // Lógica de Cerrar Sesión
-        const logoutBtn = document.getElementById('logoutBtn');
-        if(logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                signOut(auth).then(() => {
-                    window.location.href = 'index.html';
-                }).catch((error) => {
-                    console.error("Error al cerrar sesión:", error);
-                });
-            });
-        }
-        
         // Función para establecer la fecha actual por defecto
         function setTodayDate() {
             const today = new Date();
@@ -288,6 +266,7 @@
         }
 
         // Función para cargar los jugadores en los desplegables
+        // **IMPORTANTE: Se asegura de que el valor de la opción sea el ID del documento Firestore.**
         async function loadPlayers() {
             const player1Select = document.getElementById('player1');
             const player2Select = document.getElementById('player2');
@@ -299,6 +278,10 @@
             try {
                 const snapshot = await getDocs(playersCollection);
                 
+                if (snapshot.empty) {
+                     throw new Error("No se encontraron jugadores en la base de datos.");
+                }
+
                 // Opción por defecto
                 const defaultOption = document.createElement('option');
                 defaultOption.value = "";
@@ -330,11 +313,11 @@
 
             } catch (error) {
                 console.error("Error al cargar jugadores:", error);
-                alert("Error al cargar jugadores. Revisa la consola.");
+                alert(`Error al cargar jugadores: ${error.message}. Asegúrate de que los jugadores se han creado correctamente en 'add-player.html' y de que tienes permisos de lectura en Firestore.`);
             }
         }
         
-        // Lógica de Protección de Administrador y Carga
+        // Lógica de Protección de Administrador y Carga (Añadida y Vital)
         onAuthStateChanged(auth, async (user) => {
             const mainContent = document.getElementById('mainContent');
             const loading = document.getElementById('loading');
@@ -344,22 +327,23 @@
             const addResultLink = document.getElementById('addResultLink');
             const profileLink = document.getElementById('profileLink');
             const logoutLink = document.getElementById('logoutLink');
+            
+            // Lógica de Cerrar Sesión (Añadida)
+            const logoutBtn = document.getElementById('logoutBtn');
+            if(logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    signOut(auth).then(() => {
+                        window.location.href = 'index.html';
+                    }).catch((error) => {
+                        console.error("Error al cerrar sesión:", error);
+                    });
+                });
+            }
 
             if (user) {
                 try {
-                    // Cargar el documento del jugador usando su UID de Auth como ID de documento (si es el caso)
-                    // **NOTA IMPORTANTE:** Si los documentos de "jugadores" se crean con un ID automático (como en add-player.html), 
-                    // no se podrá usar user.uid para obtener el documento.
-                    // Aquí asumimos que el rol se carga mediante un campo en el documento de jugador.
-                    // Dado que add-player.html crea con un ID automático, esta lógica de rol puede necesitar ser ajustada si el ID de Auth no es el ID del documento.
-                    // Para el propósito de esta página, **simplemente verificaremos si el usuario está autenticado.**
-                    
-                    // Si el usuario está autenticado, mostramos los enlaces de usuario
-                    profileLink.style.display = 'block';
-                    logoutLink.style.display = 'block';
-
-                    // Para esta página, requerimos verificación de rol de Admin
-                    // Buscaremos el documento del jugador por su email (asumiendo que el email está en minúsculas)
+                    // Buscar el jugador por email para verificar el rol
                     const email = user.email.toLowerCase();
                     const playersSnapshot = await getDocs(playersCollection);
                     let isAdmin = false;
@@ -374,6 +358,8 @@
                         // Acceso permitido para administradores
                         adminLink.style.display = 'block';
                         addResultLink.style.display = 'block';
+                        profileLink.style.display = 'block';
+                        logoutLink.style.display = 'block';
                         
                         setTodayDate();
                         await loadPlayers();
@@ -403,11 +389,11 @@
             const player1Select = document.getElementById('player1');
             const player2Select = document.getElementById('player2');
             
-            // Los valores de los <option> son los IDs de documento Firestore.
+            // Obtener los IDs de documento de Firestore (el valor del <option>)
             const player1Id = player1Select.value;
             const player2Id = player2Select.value;
             
-            // Obtenemos los nombres de las opciones seleccionadas
+            // Obtener los nombres
             const player1Name = player1Select.options[player1Select.selectedIndex].text;
             const player2Name = player2Select.options[player2Select.selectedIndex].text;
             
@@ -422,6 +408,11 @@
 
             if (score1 === score2) {
                 alert("Error: No se permiten empates en esta liga (¡Deben jugar hasta desempatar!).");
+                return;
+            }
+
+            if (!player1Id || !player2Id) {
+                alert("Error: Por favor, selecciona a ambos jugadores.");
                 return;
             }
 
@@ -461,42 +452,49 @@
                 await runTransaction(db, async (transaction) => {
                     
                     // a) Obtener referencias del ganador y perdedor usando el ID del documento
-                    const winnerRef = doc(db, "jugadores", winnerId); // ¡CORREGIDO: usa el ID del documento!
-                    const loserRef = doc(db, "jugadores", loserId);     // ¡CORREGIDO: usa el ID del documento!
+                    const winnerRef = doc(db, "jugadores", winnerId);
+                    const loserRef = doc(db, "jugadores", loserId);
                     
                     // Obtener los datos dentro de la transacción
                     const winnerDoc = await transaction.get(winnerRef);
                     const loserDoc = await transaction.get(loserRef);
                     
-                    if (!winnerDoc.exists()) { throw "¡Ganador no encontrado!"; }
-                    if (!loserDoc.exists()) { throw "¡Perdedor no encontrado!"; }
+                    // **Verificación CRÍTICA del documento**
+                    if (!winnerDoc.exists()) { 
+                        throw new Error(`¡Ganador (${winnerId}) no encontrado! El ID del documento no existe en Firestore.`); 
+                    }
+                    if (!loserDoc.exists()) { 
+                        throw new Error(`¡Perdedor (${loserId}) no encontrado! El ID del documento no existe en Firestore.`); 
+                    }
                     
                     const winnerData = winnerDoc.data();
                     const loserData = loserDoc.data();
                     
                     // c) Actualizar Ganador (3 puntos, 1 jugado, 1 victoria)
+                    // La transacción utiliza los valores originales para asegurar la atomicidad.
                     transaction.update(winnerRef, {
-                        points: winnerData.points + 3,
-                        played: winnerData.played + 1,
-                        wins: winnerData.wins + 1
+                        points: (winnerData.points || 0) + 3,
+                        played: (winnerData.played || 0) + 1,
+                        wins: (winnerData.wins || 0) + 1
                     });
 
                     // d) Actualizar Perdedor (1 punto, 1 jugado, 1 derrota)
                     transaction.update(loserRef, {
-                        points: loserData.points + 1,
-                        played: loserData.played + 1,
-                        losses: loserData.losses + 1
+                        points: (loserData.points || 0) + 1,
+                        played: (loserData.played || 0) + 1,
+                        losses: (loserData.losses || 0) + 1
                     });
                 });
 
 
                 alert(`Resultado registrado con éxito. Ranking actualizado: ${winnerName} gana (${winnerScore}-${loserScore}) y obtiene 3 puntos. ${loserName} obtiene 1 punto.`);
                 document.getElementById('addResultForm').reset();
-                setTodayDate(); 
+                setTodayDate();
 
             } catch (error) {
                 console.error("Error al registrar resultado o actualizar ranking:", error);
-                alert("Error crítico. No se pudo registrar el resultado ni actualizar el ranking. Revisa la consola.");
+                // Muestra el mensaje de error de Firebase en la alerta para ayudar a diagnosticar
+                alert(`Error crítico. No se pudo registrar el resultado ni actualizar el ranking. Causa: ${error.message}. Revisa la consola.`);
             }
         });
     </script>
